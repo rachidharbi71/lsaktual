@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LernSpeicher – Hr. HARBI – SJ 2026/2027</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a3a6b 0%, #2e7fc2 45%, #7fb2e0 75%, #c62828 130%);
+  background-attachment: fixed;
+  color: #1f2937;
+  padding: 24px 12px 80px;
+}
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 20px;
+  box-shadow: 0 10px 32px rgba(15, 40, 80, 0.22);
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.karte { padding: 26px 28px; }
+.kopf { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.titel { font-family: 'Yu Gothic', 'Yu Gothic UI', 'Segoe UI', 'Hiragino Sans', sans-serif; font-size: 20px; font-weight: 400; letter-spacing: 0.5px; color: #1f2937; }
+.titel .L { color: #1d4ed8; font-weight: 700; }
+.titel .S { color: #ea580c; font-weight: 700; }
+.untertitel { margin-top: 2em; font-size: 15px; color: #1f2937; letter-spacing: 1px; }
+.logo svg { width: 94px; height: 94px; display: block; filter: drop-shadow(0 4px 10px rgba(15,40,80,.25)); }
+#countdownLeiste {
+  display: none; position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+  z-index: 500; padding: 10px 26px; align-items: center; gap: 14px;
+  font-family: 'Courier New', Courier, monospace; font-size: 25px; font-weight: 700; color: #1a3a6b;
+}
+#countdownLeiste.laeuft { display: flex; }
+.cdLabel { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; letter-spacing: 2px; color: #3b4a63; font-weight: 600; }
+#foerderZeit { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #0c5c2e; }
+#countdownLeiste.warn-gelb { background: rgba(254, 243, 199, 0.85); border-color: #f59e0b; color: #92400e; }
+#countdownLeiste.warn-orange { background: rgba(255, 224, 178, 0.9); border-color: #f97316; color: #9a3412; }
+#countdownLeiste.warn-rot { background: rgba(254, 202, 202, 0.92); border-color: #dc2626; color: #991b1b; animation: puls 1s infinite; }
+@keyframes puls { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
+.feldLabel { display: block; font-size: 13px; font-weight: 600; color: #3b4a63; margin: 14px 0 5px; }
+input[type=text], input:not([type]), select, textarea {
+  width: 100%; padding: 11px 13px; font-size: 15px; border-radius: 12px;
+  border: 1px solid rgba(26, 58, 107, 0.35); background: rgba(255,255,255,0.75);
+  color: #1f2937; outline: none; transition: box-shadow .15s, border-color .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: #2e7fc2; box-shadow: 0 0 0 3px rgba(46,127,194,.25); }
+input:disabled, select:disabled { background: rgba(226,232,240,.7); color: #64748b; cursor: not-allowed; }
+.dreiFelder { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.aktionsZeile { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  border: none; border-radius: 12px; padding: 12px 22px; font-size: 15px; font-weight: 700;
+  cursor: pointer; color: #fff; background: #2e7fc2; transition: transform .12s, box-shadow .12s, opacity .12s;
+  box-shadow: 0 4px 14px rgba(15,40,80,.25);
+}
+.btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(15,40,80,.3); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-gruen { background: #15803d; }
+.btn-rot { background: #c62828; }
+.btn-grau { background: #64748b; }
+.sperrHinweis { color: #b91c1c; font-weight: 700; }
+#pwHinweis { margin-top: 8px; font-size: 14px; }
+.hinweis { font-size: 13px; color: #4b5b76; margin-top: 4px; }
+.abschnitt h3 { font-size: 20px; color: #1a3a6b; border-bottom: 3px solid rgba(46,127,194,.4); padding-bottom: 6px; margin-top: 10px; }
+.aufgabe { padding: 20px 22px; margin-bottom: 16px; }
+.aufgKopf { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.aufgTitel { font-weight: 700; font-size: 17px; color: #1a3a6b; }
+.pkte { background: rgba(46,127,194,.15); color: #1a3a6b; font-weight: 700; font-size: 13px; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.aufgText { line-height: 1.55; }
+.aufgText p { margin: 6px 0; }
+.aufgText label { display: inline-block; margin: 3px 14px 3px 0; }
+.uebersetzung { font-style: italic; color: #6b7280; font-size: 0.9rem; margin-top: 8px; border-left: 3px solid rgba(46,127,194,.5); padding-left: 10px; }
+.eingabeZone { margin-top: 12px; }
+.eingabeZone input { max-width: 260px; }
+.bruchEingabe { display: inline-flex; flex-direction: column; width: 110px; gap: 4px; }
+.bruchEingabe .bruchStrich { height: 3px; background: #1a3a6b; border-radius: 2px; }
+.br { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; margin: 0 3px; line-height: 1.15; }
+.br .bz { border-bottom: 2px solid currentColor; padding: 0 7px; }
+.br .bn { padding: 0 7px; }
+.br.blau { color: #1d4ed8; font-weight: 700; }
+.gK { display: inline-block; background: #fff; border: 1px solid rgba(26,58,107,.4); border-radius: 8px; padding: 1px 7px; margin-right: 2px; font-weight: 700; vertical-align: middle; }
+.klein { font-size: 12px; }
+.hell { color: #6b7280; }
+.wortbank { background: rgba(255,255,255,.75); border: 1px dashed rgba(26,58,107,.5); border-radius: 12px; padding: 10px 14px; font-weight: 600; color: #1a3a6b; }
+.farbe-dunkelgruen { border-left: 10px solid #14532d; }
+.farbe-gruen { border-left: 10px solid #16a34a; }
+.farbe-orange { border-left: 10px solid #f97316; }
+.farbe-gelb { border-left: 10px solid #eab308; }
+.farbe-rot { border-left: 10px solid #dc2626; }
+.detailKarte { padding: 14px 18px; margin-bottom: 12px; }
+.detailKopf { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; color: #1a3a6b; }
+.detailAntwort { font-size: 13px; color: #4b5b76; margin-top: 4px; word-break: break-word; }
+.musterBox { background: rgba(254, 249, 195, .9); border: 1px solid #eab308; border-radius: 10px; padding: 8px 12px; margin-top: 8px; font-size: 14px; }
+.ergKarte { position: relative; }
+.ergKopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.ergZeile { font-size: 15px; margin: 3px 0; }
+.ergBewertung { font-size: 20px; margin-top: 10px; color: #1a3a6b; }
+.modalHintergrund { display: none; position: fixed; inset: 0; background: rgba(15, 30, 60, .45); z-index: 900; align-items: center; justify-content: center; padding: 16px; }
+.modalHintergrund.aktiv { display: flex; }
+.modal { max-width: 520px; width: 100%; padding: 26px 28px; }
+.modal h3 { color: #1a3a6b; margin-bottom: 10px; }
+.btnReihe { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+#toast {
+  position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px);
+  padding: 12px 22px; font-weight: 600; color: #1a3a6b; opacity: 0; pointer-events: none;
+  transition: opacity .25s, transform .25s; z-index: 950;
+}
+#toast.sichtbar { opacity: 1; transform: translateX(-50%) translateY(0); }
+#toast.warnung { border: 3px solid #dc2626; color: #991b1b; background: rgba(254, 226, 226, 0.95); }
+/* Kurs-Farben am Kursfeld: EK rot, GK grün, V blau */
+#kursFeld.kurs-EK { border: 3px solid #dc2626; }
+#kursFeld.kurs-GK { border: 3px solid #16a34a; }
+#kursFeld.kurs-V  { border: 3px solid #1d4ed8; }
+/* Kopierschutz: nur während der laufenden Arbeit, nur Aufgabenbereich */
+#testBereich.schutz { -webkit-user-select: none; -moz-user-select: none; user-select: none; }
+#testBereich.schutz input, #testBereich.schutz textarea, #testBereich.schutz select {
+  -webkit-user-select: text; -moz-user-select: text; user-select: text;
+}
+svg { max-width: 100%; height: auto; }
+@media print {
+  body { background: #fff; padding: 0; }
+  #countdownLeiste, .aktionsZeile, .btn, #toast, .modalHintergrund { display: none !important; }
+  .glass { background: #fff; border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; }
+  .aufgabe, .detailKarte, .karte { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div id="countdownLeiste" class="glass" role="timer" aria-live="polite">
+  <span class="cdLabel">VERBLEIBENDE ZEIT</span>
+  <span id="countdownZeit">--:--</span><span id="foerderZeit"></span>
+</div>
+
+<div class="wrap">
+  <div class="karte glass">
+    <div class="kopf">
+      <div>
+        <div class="titel"><span class="L">L</span>ern<span class="S">S</span>peicher</div>
+        <div class="untertitel"><u>SJ26/27</u>&nbsp;&nbsp;&nbsp;Hr.HARBI&nbsp;&nbsp;&nbsp;M/Ph/NW/I</div>
+      </div>
+      <div class="logo" id="logoKopf" aria-label="Logo"></div>
+    </div>
+  </div>
+
+  <div class="karte glass" id="sperrKarte" style="display:none;">
+    <p class="sperrHinweis" style="font-size:16px;">Die Lernzielkontrolle ist abgeschlossen. Ein erneuter Durchlauf ist nicht möglich.</p>
+  </div>
+
+  <div class="karte glass" id="anmeldeKarte">
+    <label class="feldLabel" for="pwFeld">Zugangspasswort</label>
+    <input type="text" id="pwFeld" autocomplete="off" placeholder="Zugangspasswort eingeben" aria-describedby="pwHinweis">
+    <div id="pwHinweis" class="sperrHinweis" style="display:none;"></div>
+
+    <div class="dreiFelder">
+      <div>
+        <label class="feldLabel" for="fachFeld">Fach</label>
+        <select id="fachFeld" disabled><option value="">– bitte wählen –</option></select>
+      </div>
+      <div>
+        <label class="feldLabel" for="klasseFeld">Klasse</label>
+        <input type="text" id="klasseFeld" disabled placeholder="wird ermittelt">
+      </div>
+      <div>
+        <label class="feldLabel" for="kursFeld">Kurs</label>
+        <input type="text" id="kursFeld" disabled placeholder="wird ermittelt">
+      </div>
+    </div>
+
+    <label class="feldLabel" for="lzkFeld">Lernzielkontrolle / Test</label>
+    <select id="lzkFeld" disabled><option value="">– bitte wählen –</option></select>
+
+    <div class="aktionsZeile">
+      <button class="btn" id="startBtn" disabled>Test/LZK starten</button>
+    </div>
+  </div>
+
+  <div id="testBereich" style="display:none;">
+    <div class="karte glass">
+      <h2 id="testTitel" style="font-size:19px;"></h2>
+      <div id="testInfo" class="hinweis"></div>
+    </div>
+    <div id="aufgabenListe"></div>
+    <div class="karte glass">
+      <div class="aktionsZeile">
+        <button class="btn btn-gruen" id="abgebenBtn">Absenden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ergebnisBereich" style="display:none;"></div>
+</div>
+
+<div class="modalHintergrund" id="abgabeModal">
+  <div class="modal glass">
+    <h3>Abgabe bestätigen</h3>
+    <p id="abgabeText"></p>
+    <div class="btnReihe">
+      <button class="btn btn-rot" id="trotzdemBtn">Trotzdem abgeben</button>
+      <button class="btn btn-grau" id="zurueckBtn">Doch nicht abgeben</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="glass"></div>
+
+<script>
+"use strict";
+/* ===== Logo (inline, HAR-MINT-Prisma) ===== */
+const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220" role="img" aria-label="HAR MINT Logo"><circle cx="110" cy="110" r="96" fill="#ffffff" stroke="#1a3a6b" stroke-width="4"/><g stroke="#1a3a6b" stroke-width="1" opacity="0.25"><line x1="30" y1="110" x2="190" y2="110"/><line x1="110" y1="30" x2="110" y2="190"/></g><g><rect x="40" y="62" width="13" height="76" rx="3" fill="#ffffff" stroke="#1a3a6b" stroke-width="2.5"/><rect x="70" y="62" width="13" height="76" rx="3" fill="#ffffff" stroke="#1a3a6b" stroke-width="2.5"/><rect x="40" y="93" width="43" height="12" rx="3" fill="#ffffff" stroke="#1a3a6b" stroke-width="2.5"/><g stroke="#1a3a6b" stroke-width="1" opacity="0.6"><line x1="44" y1="72" x2="49" y2="72"/><line x1="44" y1="82" x2="49" y2="82"/><line x1="44" y1="112" x2="49" y2="112"/><line x1="44" y1="122" x2="49" y2="122"/><line x1="74" y1="72" x2="79" y2="72"/><line x1="74" y1="122" x2="79" y2="122"/><line x1="50" y1="97" x2="50" y2="102"/><line x1="60" y1="97" x2="60" y2="102"/><line x1="73" y1="97" x2="73" y2="102"/></g></g><g><polygon points="140,56 100,138 180,138" fill="#ffffff" fill-opacity="0.9" stroke="#1a3a6b" stroke-width="4" stroke-linejoin="round"/><line x1="14" y1="92" x2="118" y2="114" stroke="#1a3a6b" stroke-width="3"/><line x1="150" y1="126" x2="206" y2="108" stroke="#c62828" stroke-width="3"/><line x1="150" y1="126" x2="206" y2="118" stroke="#1a3a6b" stroke-width="3"/><line x1="150" y1="126" x2="206" y2="128" stroke="#2e7fc2" stroke-width="3"/><line x1="150" y1="126" x2="206" y2="138" stroke="#c62828" stroke-width="3" opacity="0.55"/></g><g><rect x="184" y="62" width="13" height="76" rx="3" fill="#ffffff" stroke="#1a3a6b" stroke-width="2.5"/><path d="M 197 68 A 20 20 0 0 1 197 108" fill="none" stroke="#1a3a6b" stroke-width="6"/><line x1="195" y1="104" x2="212" y2="130" stroke="#1a3a6b" stroke-width="6" stroke-linecap="round"/><g stroke="#1a3a6b" stroke-width="1" opacity="0.6"><line x1="188" y1="72" x2="193" y2="72"/><line x1="188" y1="92" x2="193" y2="92"/><line x1="188" y1="122" x2="193" y2="122"/></g></g><text x="110" y="188" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="19" font-weight="600" letter-spacing="6" fill="#c62828">MINT</text></svg>`;
+
+/* ===== Zustand ===== */
+const state = {
+  name: '', fach: '', klasse: '', kurs: '',
+  lzkName: '', lzk: null, aufgaben: [],
+  testLaeuft: false, timerId: null, restSekunden: 0,
+  extraMin: 0, sprache: null, leModus: false, angemeldet: false
+};
+"use strict";
+/* ===== II. Klassenlisten und Zugangspasswörter ===== */
+const GRUPPEN = [
+  { fach:'Mathematik', klasse:'5C', kurs:'V', liste:[
+    ['YQCSX2','Akil, Malak'],['WYSML2','Al Beirouti, Dania'],['6A9UW5','Al Hamad, Alind'],
+    ['FDFTW2','Albanna, Aram'],['UD61J2','Alievski, Zaklina'],['C3MPEX','Azzouzi, Maryam'],
+    ['V3P24G','Beiro, Elimar'],['WA88TL','Benaali Boukhou, Dina'],['BF3K48','Blum, Lio Wilhelm'],
+    ['TPM3VY','Dialler, Lionel'],['2JKRBC','Fausten, Leon'],['B729GA','Grüner, Jerome Noel'],
+    ['KJXAL3','Haj Abd, Abdalhamid'],['C7Q615','Kamal, Safia'],['9YHKN8','Kolaxizis, Noah'],
+    ['2NDVY2','Lazar, Imad'],['6HQR3W','Longo, Gabriele'],['3ZAM6Z','Maieilo, Antonio'],
+    ['BR5CFR','Marzouki, Noah'],['WPXS7D','Mihajlović, Jovana'],['ZR1H3B','Moustafa, Azize'],
+    ['9TKVZ6','Muhamad, Danar'],['BAN3A9','Saido, Mohammed'],['S1FF5H','Serano Javier, Adil'],
+    ['CFDA81','Smoqy, Khunaf']
+  ]},
+  { fach:'Mathematik', klasse:'6C', kurs:'V', liste:[
+    ['Y1HF5F','Amuzu, Prince'],['K5W7TK','Arfe, Selya'],['81PFSX','Bernsdorf, Emily'],
+    ['ZB5B39','Beskardes (Beşkardeş), Efe'],['PT33AP','Dagtekin (Dağtekin), Ahmet'],
+    ['M8Q7UL','El Arrag, Hidaya'],['5ME265','El Yachaoui, Moussa'],['26DMWW','Faizi, Fereshte'],
+    ['6R8KYN','Galali, Bahoz'],['84UAJQ','Große, Jayden'],['56V5WR','Hafiane, Yassmine'],
+    ['NSAW15','Kremsier, Philipp'],['C1MDLS','Kusi Oppong, Jayden'],['7BZALW','Labahn, Fabienne'],
+    ['L8D375','Mehmed, Neriman'],['3MQHMH','Mpanzu, Ambrósio'],['TWQ3AU','Othman, Helin'],
+    ['AH2QJE','Pawlak, Alisha'],['9ZZBJF','Raulf, Celina'],['DT56B2','Saighani, Sorosch'],
+    ['B6E5Z3','Sarpong, Susana'],['SLJH8X','Schwarzbrunn, Cheyenne'],['8PMBJQ','Shaker, Shaker'],
+    ['HF9YGP','Shutcha, Amour'],['A1UZAU','Strek, Emilia Sophie'],['AJRH2G','Tserkovna, Alisa'],
+    ['U28Y24','Ural, Umut']
+  ]},
+  { fach:'Informatik', klasse:'6C', kurs:'V', liste:[
+    ['Y1HF5F','Amuzu, Prince'],['K5W7TK','Arfe, Selya'],['81PFSX','Bernsdorf, Emily'],
+    ['ZB5B39','Beskardes (Beşkardeş), Efe'],['PT33AP','Dagtekin (Dağtekin), Ahmet'],
+    ['M8Q7UL','El Arrag, Hidaya'],['5ME265','El Yachaoui, Moussa'],['26DMWW','Faizi, Fereshte'],
+    ['6R8KYN','Galali, Bahoz'],['84UAJQ','Große, Jayden'],['56V5WR','Hafiane, Yassmine'],
+    ['NSAW15','Kremsier, Philipp'],['C1MDLS','Kusi Oppong, Jayden'],['7BZALW','Labahn, Fabienne'],
+    ['L8D375','Mehmed, Neriman'],['3MQHMH','Mpanzu, Ambrósio'],['TWQ3AU','Othman, Helin'],
+    ['AH2QJE','Pawlak, Alisha'],['9ZZBJF','Raulf, Celina'],['DT56B2','Saighani, Sorosch'],
+    ['B6E5Z3','Sarpong, Susana'],['SLJH8X','Schwarzbrunn, Cheyenne'],['8PMBJQ','Shaker, Shaker'],
+    ['HF9YGP','Shutcha, Amour'],['A1UZAU','Strek, Emilia Sophie'],['AJRH2G','Tserkovna, Alisa'],
+    ['U28Y24','Ural, Umut']
+  ]},
+  { fach:'Mathematik', klasse:'7B', kurs:'EK', liste:[
+    ['L55DQH','Ajdari, Ermina'],['5HXNUB','Al Kawas, Gadir'],['FU4BB3','Albaba, Mohamad Said'],
+    ['EQ5RLY','Ali, Salar'],['MK2VTZ','Arrami, Bilal'],['FA48UG','Bajrami, Ajet'],
+    ['QV1SHZ','Boateng Bamfo, Nana'],['16VCXY','Foitzik, Maya'],['NJM3ZW','Höver, Emily (Mia)'],
+    ['SQVMB9','Krafczyk, Luan'],['YK8LMN','Nasouf, Nilay'],['XF3T9U','Prekic, Andrej'],
+    ['JJ5P8T','Ravikumaran, Bavishaanan'],['7T1164','Said, Zahra'],['2B7XXZ','Schöll, Anna'],
+    ['D42PSS','Yilmaz, Ömer Isa']
+  ]},
+  { fach:'Mathematik', klasse:'7B', kurs:'GK', liste:[
+    ['MYBUC9','Al Hashemi, Naser Victorio'],['PE18KY','Aljomaa Alhaded, Joudi'],['ZQAT7Q','Beyer, Melvin'],
+    ['1UEHT9','Bourichat, Akram'],['72SMJJ','Chyzhemskyi, Matvii'],['ZBQE93','Gervasi, Adriana'],
+    ['F63ERF','Nuna, Zakariya'],['5ZBQH3','Pollow, Colin Felix'],['8DX3P6','Polowinsky, Leia-Samentha'],
+    ['EXYM62','Safi, Behtar'],['GQYMT5','Schödel, Mia'],['2EYWCY','Stojkov, Leonardo'],
+    ['ZV16K2','Yilmaz, Zahide']
+  ]},
+  { fach:'Physik', klasse:'7B', kurs:'V', liste:[
+    ['L55DQH','Ajdari, Ermina'],['MYBUC9','Al Hashemi, Naser Victorio'],['5HXNUB','Al Kawas, Gadir'],
+    ['FU4BB3','Albaba, Mohamad Said'],['EQ5RLY','Ali, Salar'],['PE18KY','Aljomaa Alhaded, Joudi'],
+    ['MK2VTZ','Arrami, Bilal'],['FA48UG','Bajrami, Ajet'],['ZQAT7Q','Beyer, Melvin'],
+    ['QV1SHZ','Boateng Bamfo, Nana'],['1UEHT9','Bourichat, Akram'],['72SMJJ','Chyzhemskyi, Matvii'],
+    ['16VCXY','Foitzik, Maya'],['ZBQE93','Gervasi, Adriana'],['NJM3ZW','Höver, Emily (Mia)'],
+    ['SQVMB9','Krafczyk, Luan'],['YK8LMN','Nasouf, Nilay'],['F63ERF','Nuna, Zakariya'],
+    ['5ZBQH3','Pollow, Colin Felix'],['8DX3P6','Polowinsky, Leia-Samentha'],['XF3T9U','Prekic, Andrej'],
+    ['JJ5P8T','Ravikumaran, Bavishaanan'],['EXYM62','Safi, Behtar'],['7T1164','Said, Zahra'],
+    ['GQYMT5','Schödel, Mia'],['2B7XXZ','Schöll, Anna'],['2EYWCY','Stojkov, Leonardo'],
+    ['D42PSS','Yilmaz, Ömer Isa'],['ZV16K2','Yilmaz, Zahide']
+  ]},
+  { fach:'Physik', klasse:'7F', kurs:'V', liste:[
+    ['3B5JFS','Adebayo, Destiny'],['RXNY88','Ahmed, Adam'],['28FB6S','Atabey, Ismail (Ismail)'],
+    ['HP6URX','Boudra Jilah, Lilya'],['ARBJ9W','Boutaba Bouda, Imran'],['U3KCSW','Butuć, Valentina'],
+    ['3TJ6GE','Foerster, Estefania'],['JF5ZPL','Haagmans, Ramon'],['3L6QTE','Hamidi, Mohammad'],
+    ['W92ANX','Hertrampf Mandiola, Kurt Ignacio'],['TD121B','Idić, Seara'],['U5VRWA','Jidan, Yassin'],
+    ['4FDN41','Joseph Stijo, Shawn'],['K9U8HK','Kalinke, Jannik Achim'],['DWKK57','Khaled, Raman'],
+    ['F5TEWM','Maliqi, Maliq'],['UPF1TL','Matysiak, Adoria'],['8TXLDH','Meschter, Lisa'],
+    ['QWRF1V','Minzu, Darian'],['UES39Z','Mokk, Aliza'],['VU4HRE','Muhamad, Dina'],
+    ['DC96VB','Nazifov, Sali'],['G3HKWR','Okla, Rafah'],['K5PXMD','Ramdani, Idriss'],
+    ['TRU64C','Rikkonen, Michelle'],['NTR6YW','Sardar, Judy'],['LUK4MM','Solnita, Nicolas'],
+    ['C4TXRD','Yigman (Yığıman), Zeynep'],['DTTNP7','Zavada, Kyrylo']
+  ]},
+  { fach:'Mathematik', klasse:'9B', kurs:'EK', liste:[
+    ['XA6JS7','Al Hamad, Rada Sabah Hamad'],['9Z6G47','Dieler, Luisa'],['T9F9W6','Durmis, Damin'],
+    ['B28QAR','Erdal, Hüseyin Ali'],['NM3FAU','Gnyp, Lucy'],['E8KVFJ','Lahlou, Mohamed Salman'],
+    ['GW9E1T','Mettbach, Chelina Jesaja'],['65ZTAU','Özalp, Yusuf Said'],['T51Z6G','Stemmer, Mia Sophie'],
+    ['EC1SJW','Tücks, Luke Felix'],['K4XE82','Yilmaz, Elif']
+  ]},
+  { fach:'Mathematik', klasse:'9C', kurs:'EK', liste:[
+    ['C271XG','Al Darabseh, Reem'],['BY2YPR','Albaba, Osaidh'],['RT9AQ5','Altinbas, Hatice'],
+    ['U4V3SU','Britz Perez, Naomi Anett'],['HRY55K','Draniceanu, Dragos'],['Y7ZKCB','Hami Aosi, Rouheef'],
+    ['YF1XSS','Tajaoui, Lina']
+  ]}
+];
+const SCHUELER = {};
+GRUPPEN.forEach(function (g) {
+  g.liste.forEach(function (paar) {
+    const pw = paar[0], name = paar[1];
+    if (!SCHUELER[pw]) SCHUELER[pw] = { name: name, eintraege: [] };
+    SCHUELER[pw].eintraege.push({ fach: g.fach, klasse: g.klasse, kurs: g.kurs });
+  });
+});
+
+/* ===== Inklusion / Förderbedarf ===== */
+const FOERDERUNG = {
+  'Al Beirouti, Dania':               { code:'KM',     extraMin:5 },
+  'Al Hamad, Alind':                  { code:'LE',     extraMin:5, le:true },
+  'Kolaxizis, Noah':                  { code:'ES',     extraMin:5 },
+  'Moustafa, Azize':                  { code:'ES',     extraMin:5, le:true },
+  'Blum, Lio Wilhelm':                { code:'ES',     extraMin:5 },
+  'Shutcha, Amour':                   { code:'SE',     extraMin:3, sprache:'en' },
+  'Bernsdorf, Emily':                 { code:'LE',     extraMin:5, le:true },
+  'Galali, Bahoz':                    { code:'ES/ASS', extraMin:3 },
+  'Kremsier, Philipp':                { code:'ES',     extraMin:3 },
+  'Pawlak, Alisha':                   { code:'LE',     extraMin:5, le:true },
+  'Schwarzbrunn, Cheyenne':           { code:'LE',     extraMin:5, le:true },
+  'Hertrampf Mandiola, Kurt Ignacio': { code:'SE',     extraMin:3, sprache:'es' }
+};
+
+/* ===== LZK-/Test-Übersicht mit Timertabellen (Europe/Berlin) ===== */
+const LZKS = [
+  { id:'5c-daten',   name:'Übung Nr.1_Mathematik_Daten',                                 fach:'Mathematik', klasse:'5C',        kurse:['V'],       freigabe:null,               ablauf:null,               gen:'daten5' },
+  { id:'5c-grund',   name:'Übung Nr.2_Mathematik_Grundrechenarten',                      fach:'Mathematik', klasse:'5C',        kurse:['V'],       freigabe:null,               ablauf:null,               gen:'grund5' },
+  { id:'6c-kreis',   name:'Testvorbereitung Nr.1_Mathematik_Kreis, Winkel u. Dreieck',   fach:'Mathematik', klasse:'6C',        kurse:['V'],       freigabe:'13.10.2026 12:30', ablauf:'30.10.2026 13:30', gen:'kreis6' },
+  { id:'6c-codes',   name:'LZK Nr.1_Informatik_Codes (Vorlage)',                         fach:'Informatik', klasse:'6C',        kurse:['V'],       freigabe:'15.10.2026 14:10', ablauf:'30.10.2026 15:30', vorlage:'codes' },
+  { id:'7b-brueche', name:'Testvorbereitung Nr.1_Mathematik_Brüche',                     fach:'Mathematik', klasse:'7B',        kurse:['EK','GK'], freigabe:'13.10.2026 12:30', ablauf:'13.10.2026 20:00', gen:'brueche7' },
+  { id:'7b-physik',  name:'LZK Nr.1_Physik_Sicherheit im Physikunterricht',              fach:'Physik',     klasse:'7B',        kurse:['V'],       freigabe:'14.10.2026 08:00', ablauf:'14.10.2026 09:00', gen:'physikSicherheit' },
+  { id:'7f-physik',  name:'LZK Nr.1_Physik_Sicherheit im Physikunterricht',              fach:'Physik',     klasse:'7F',        kurse:['V'],       freigabe:'14.10.2026 10:55', ablauf:'14.10.2026 12:00', gen:'physikSicherheit' },
+  { id:'9-potenzen', name:'Testvorbereitung Nr.1_Mathematik_Potenzen, Wurzel und Kreis (Vorlage)', fach:'Mathematik', klasse:['9B','9C'], kurse:['EK'], freigabe:'13.10.2026 08:00', ablauf:'14.10.2026 23:59', vorlage:'potenzen' }
+];
+function berlinStempel(d) {
+  const f = new Intl.DateTimeFormat('de-DE', { timeZone:'Europe/Berlin', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
+  const p = {}; f.formatToParts(d || new Date()).forEach(function (x) { p[x.type] = x.value; });
+  const h = parseInt(p.hour, 10) % 24;
+  return (((((+p.year) * 100 + (+p.month)) * 100 + (+p.day)) * 100 + h) * 100 + (+p.minute));
+}
+function parseDT(s) {
+  const m = s.match(/(\d{2})\.(\d{2})\.(\d{4})\s*,?\s*(\d{2}):(\d{2})/);
+  return (((((+m[3]) * 100 + (+m[2])) * 100 + (+m[1])) * 100 + (+m[4])) * 100 + (+m[5]));
+}
+function lzkVerfuegbar(lzk) {
+  const jetzt = berlinStempel();
+  if (lzk.freigabe && jetzt < parseDT(lzk.freigabe)) return false;
+  if (lzk.ablauf && jetzt > parseDT(lzk.ablauf)) return false;
+  return true;
+}
+function lzkStatusText(lzk) {
+  const jetzt = berlinStempel();
+  if (lzk.freigabe && jetzt < parseDT(lzk.freigabe)) return 'verfügbar ab ' + lzk.freigabe.replace(' ', ', ') + ' Uhr';
+  if (lzk.ablauf && jetzt > parseDT(lzk.ablauf)) return 'abgelaufen seit ' + lzk.ablauf.replace(' ', ', ') + ' Uhr';
+  return '';
+}
+
+/* ===== Hilfsfunktionen ===== */
+function zufall(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function waehle(arr) { return arr[zufall(0, arr.length - 1)]; }
+function mischen(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = zufall(0, i); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function ggt(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { const t = a % b; a = b; b = t; } return a || 1; }
+function formatPunkte(x) { const gerundet = Math.round(x * 10) / 10; return (Number.isInteger(gerundet) ? String(gerundet) : gerundet.toFixed(1)).replace('.', ','); }
+function formatZahl(x) { const gerundet = Math.round(x * 100) / 100; return (Number.isInteger(gerundet) ? String(gerundet) : String(gerundet)).replace('.', ','); }
+function parseZahl(str) { const s = String(str || '').trim().replace(',', '.'); if (s === '') return NaN; const n = Number(s); return isNaN(n) ? NaN : n; }
+function normText(str) { return String(str || '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+function stripHtml(h) { const d = document.createElement('div'); d.innerHTML = h; return d.textContent || ''; }
+function bruchHtml(z, n, farbe) { return '<span class="br' + (farbe ? ' ' + farbe : '') + '"><span class="bz">' + z + '</span><span class="bn">' + n + '</span></span>'; }
+function gemischtHtml(g, z, n) { return '<span class="gK">' + g + '</span>' + bruchHtml(z, n); }
+function balkenDiagramm(werte, breite) {
+  const b = Math.max(breite || 420, 400), h = 250, max = Math.max.apply(null, werte);
+  const bw = (b - 80) / werte.length - 14;
+  let bars = '';
+  werte.forEach(function (w, i) {
+    const bh = Math.round((w / max) * (h - 70));
+    const x = 60 + i * ((b - 80) / werte.length);
+    const y = h - 30 - bh;
+    bars += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + bh + '" rx="8" fill="#60a5fa" stroke="#1d4ed8" stroke-width="2"/>'
+      + '<text x="' + (x + bw / 2) + '" y="' + (y - 8) + '" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">' + w + '</text>'
+      + '<text x="' + (x + bw / 2) + '" y="' + (h - 10) + '" text-anchor="middle" font-size="13" fill="#334155">' + String.fromCharCode(65 + i) + '</text>';
+  });
+  return '<svg width="' + b + '" height="' + h + '" viewBox="0 0 ' + b + ' ' + h + '" role="img" aria-label="Säulendiagramm mit den Werten ' + werte.join(', ') + '">'
+    + '<line x1="50" y1="' + (h - 30) + '" x2="' + (b - 10) + '" y2="' + (h - 30) + '" stroke="#334155" stroke-width="2"/>'
+    + '<line x1="50" y1="15" x2="50" y2="' + (h - 30) + '" stroke="#334155" stroke-width="2"/>'
+    + '<text x="16" y="' + (h / 2) + '" font-size="13" fill="#334155" transform="rotate(-90 16 ' + (h / 2) + ')" text-anchor="middle">Anzahl</text>'
+    + bars + '</svg>';
+}
+function showToast(msg, warnung) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('warnung', !!warnung);
+  t.classList.add('sichtbar');
+  clearTimeout(t._tid); t._tid = setTimeout(function () { t.classList.remove('sichtbar'); }, 3000);
+}
+function aufgabe(titel, punkte, html, check, extra) {
+  const o = { titel: titel, punkte: punkte, html: html, check: check };
+  if (extra) Object.keys(extra).forEach(function (k) { o[k] = extra[k]; });
+  return o;
+}
+function checkSchlagwoerter(str, schlagwoerter) {
+  const t = normText(str);
+  return schlagwoerter.some(function (sw) { return t.indexOf(normText(sw)) !== -1; });
+}
+
+/* ===== Fundamentum Mathematik (5C/6C/7B) ===== */
+function fundamentumMathe57() {
+  const pool = [
+    function () {
+      const a = zufall(21, 99), b = zufall(12, 88), c = zufall(3, 9);
+      return aufgabe('Fundamentum 1: Punkt vor Strich', 2,
+        'Berechne: <b>' + a + ' + ' + b + ' · ' + c + '</b>',
+        function (v) { return zahlCheck(v.f0, a + b * c); },
+        { typ: 'zahl', uebersetzungen: { en: 'Calculate: ' + a + ' + ' + b + ' · ' + c } });
+    },
+    function () {
+      const a = zufall(15, 80), b = zufall(6, 30), c = zufall(4, 40);
+      return aufgabe('Fundamentum 2: Strichrechnung', 2,
+        'Berechne: <b>' + a + ' − ' + b + ' + ' + c + '</b>',
+        function (v) { return zahlCheck(v.f0, a - b + c); },
+        { typ: 'zahl', uebersetzungen: { en: 'Calculate: ' + a + ' − ' + b + ' + ' + c } });
+    },
+    function () {
+      const a = zufall(4, 12), b = zufall(3, 9), c = zufall(5, 15);
+      return aufgabe('Fundamentum 3: Klammern', 2,
+        'Berechne: <b>(' + a + ' + ' + b + ') · ' + c + '</b>',
+        function (v) { return zahlCheck(v.f0, (a + b) * c); },
+        { typ: 'zahl', uebersetzungen: { en: 'Calculate: (' + a + ' + ' + b + ') · ' + c } });
+    },
+    function () {
+      const op = waehle(['vorne', 'hinten', 'oben', 'unten', 'rechts', 'links']);
+      const antw = { vorne: 'hinten', hinten: 'vorne', oben: 'unten', unten: 'oben', rechts: 'links', links: 'rechts' }[op];
+      return aufgabe('Fundamentum 4: Gegensätze', 1,
+        'Nenne das Gegenteil von <b>„' + op + '"</b>.',
+        function (v) { return normText(v.f0) === antw ? 1 : 0; },
+        { typ: 'text', uebersetzungen: { en: 'Name the opposite of „' + op + '".' },
+          loesungHtml: 'Das Gegenteil von „' + op + '" ist <b>„' + antw + '"</b>.' });
+    },
+    function () {
+      const b = zufall(3, 9);
+      return aufgabe('Fundamentum 5: Potenz', 2,
+        'Berechne: <b>' + b + '<sup>2</sup></b>',
+        function (v) { return zahlCheck(v.f0, b * b); },
+        { typ: 'zahl', uebersetzungen: { en: 'Calculate: ' + b + '²' } });
+    },
+    function () {
+      const werte = [zufall(3, 9), zufall(4, 10), zufall(2, 8), zufall(5, 12)];
+      const iMax = werte.indexOf(Math.max.apply(null, werte));
+      return aufgabe('Fundamentum 6: Säulendiagramm', 2,
+        '<p>Welche Säule hat den größten Wert? (Antwort: A, B, C oder D)</p>' + balkenDiagramm(werte),
+        function (v) { return normText(v.f0) === String.fromCharCode(97 + iMax) ? 1 : 0; },
+        { typ: 'text', uebersetzungen: { en: 'Which bar has the greatest value? (Answer: A, B, C or D)' },
+          loesungHtml: 'Säule <b>' + String.fromCharCode(65 + iMax) + '</b> ist am höchsten (Wert ' + werte[iMax] + ').' });
+    },
+    function () {
+      const ziel = zufall(50, 90);
+      const opt = [ziel - zufall(2, 4), ziel, ziel + zufall(2, 4)];
+      return aufgabe('Fundamentum 7: Schätzaufgabe', 2,
+        'Schätze: Wie groß ist ' + ziel + ' ungefähr? Wähle den nächstgelegenen Wert aus: ' + opt.join(', '),
+        function (v) { return zahlCheck(v.f0, ziel); },
+        { typ: 'zahl', uebersetzungen: { en: 'Estimate: which value is closest to ' + ziel + '? Choose from: ' + opt.join(', ') } });
+    }
+  ];
+  return waehle(pool)();
+}
+let LETZTE_LOESUNGEN = [];
+function zahlCheck(eingabe, soll) {
+  LETZTE_LOESUNGEN.push(String(Math.round(soll * 100) / 100).replace('.', ','));
+  const n = parseZahl(eingabe);
+  if (isNaN(n)) return 0;
+  return Math.abs(n - soll) < 0.011 ? 1 : 0;
+}
+
+/* ===== Fundamentum Physik (7B/7F) ===== */
+function fundamentumPhysik() {
+  const pool = [
+    function () { return aufgabe('Fundamentum 1: Sicherheit', 2, 'Warum trägt man beim Experimentieren eine <b>Schutzbrille</b>?',
+      function (v) { return checkSchlagwoerter(v.f0, ['augen', 'verletz', 'gefahr', 'schutz', 'säure', 'brennen']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Por qué llevas gafas de protección al hacer experimentos?' }, loesungHtml: 'Die <b>Schutzbrille schützt die Augen</b> vor Spritzern, Säuren und Verletzungen.' }); },
+    function () { return aufgabe('Fundamentum 2: Verhalten', 2, 'Nenne <b>eine Regel</b> für das Verhalten im Physikraum.',
+      function (v) { return checkSchlagwoerter(v.f0, ['renn', 'lauf', 'essen', 'trinken', 'aufmerksam', 'lehrer', 'hören', 'zuhören', 'anweisung']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: 'Menciona una regla de comportamiento en la sala de física.' }, loesungHtml: 'Z. B.: <b>Nicht rennen, nichts essen oder trinken, Anweisungen der Lehrkraft befolgen.</b>' }); },
+    function () { return aufgabe('Fundamentum 3: Gefahrenzeichen', 2, 'Was bedeutet ein Gefahrenzeichen mit einer <b>Flamme</b>?',
+      function (v) { return checkSchlagwoerter(v.f0, ['brennbar', 'entzündbar', 'feuer', 'flamme', 'brand']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Qué significa un símbolo de peligro con una llama?' }, loesungHtml: 'Die Flamme warnt vor <b>brennbaren / entzündbaren Stoffen</b>.' }); },
+    function () { return aufgabe('Fundamentum 4: Erste Hilfe', 2, 'Was tust du zuerst, wenn ein:e Mitschüler:in sich beim Experiment <b>verbrennt</b>?',
+      function (v) { return checkSchlagwoerter(v.f0, ['lehrer', 'melden', 'wasser', 'kühlen', 'kalt', 'hilfe', 'sagen']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Qué haces primero si un compañero se quema durante el experimento?' }, loesungHtml: 'Zuerst die <b>Lehrkraft informieren</b> und die Stelle mit <b>kaltem Wasser kühlen</b>.' }); },
+    function () { return aufgabe('Fundamentum 5: Strom', 2, 'Warum ist es gefährlich, mit <b>nassen Händen</b> an elektrische Geräte zu gehen?',
+      function (v) { return checkSchlagwoerter(v.f0, ['wasser', 'leitet', 'stromschlag', 'elektr', 'schlag', 'strom']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Por qué es peligroso tocar aparatos eléctricos con las manos mojadas?' }, loesungHtml: 'Wasser <b>leitet Strom</b> – es droht ein <b>Stromschlag</b>.' }); },
+    function () { return aufgabe('Fundamentum 6: Messgrößen', 2, 'In welcher Einheit misst man die <b>Temperatur</b>?',
+      function (v) { return checkSchlagwoerter(v.f0, ['grad', 'celsius', '°c']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿En qué unidad se mide la temperatura?' }, loesungHtml: 'In <b>Grad Celsius (°C)</b>.' }); },
+    function () { return aufgabe('Fundamentum 7: Feuer', 2, 'Was gehört zur <b>Verbrennung</b>? Nenne eine Voraussetzung.',
+      function (v) { return checkSchlagwoerter(v.f0, ['sauerstoff', 'brennstoff', 'hitze', 'wärme', 'temperatur', 'zünd']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: 'Menciona un requisito para la combustión.' }, loesungHtml: 'Zur Verbrennung braucht man <b>Sauerstoff, einen Brennstoff und ausreichend Wärme</b> (Zündtemperatur).' }); },
+    function () { return aufgabe('Fundamentum 8: Labor', 2, 'Was machst du mit <b>Glasscherben</b> im Physikraum?',
+      function (v) { return checkSchlagwoerter(v.f0, ['melden', 'lehrer', 'behälter', 'sammeln', 'besen', 'kehr', 'scherben']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Qué haces con los trozos de vidrio en la sala de física?' }, loesungHtml: '<b>Der Lehrkraft melden</b> und die Scherben mit Besen/Kehrblech in den <b>Scherbenbehälter</b> geben – nicht mit den bloßen Händen.' }); },
+    function () { return aufgabe('Fundamentum 9: Notfall', 2, 'Wo befindet sich der <b>Notausgang</b> / die <b>Notdusche</b> im Physikraum?',
+      function (v) { return checkSchlagwoerter(v.f0, ['tür', 'eingang', 'wand', 'hinten', 'vorne', 'neben', 'ausgang']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Dónde está la salida de emergencia / la ducha de emergencia en la sala de física?' }, loesungHtml: 'Am <b>Eingang/an der Wand</b> des Physikraums (vor Ort zeigen lassen).' }); },
+    function () { return aufgabe('Fundamentum 10: Sorgfalt', 2, 'Warum darf man im Physikraum <b>nicht essen und trinken</b>?',
+      function (v) { return checkSchlagwoerter(v.f0, ['gift', 'chemikal', 'gesundheit', 'gefahr', 'sauber', 'hygien']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Por qué no se puede comer ni beber en la sala de física?' }, loesungHtml: 'Wegen <b>Chemikalien und Giftstoffen</b> – Gesundheitsgefahr und Hygiene.' }); },
+    function () { return aufgabe('Fundamentum 11: Geräte', 2, 'Was tust du, bevor du ein <b>neues Gerät</b> benutzt?',
+      function (v) { return checkSchlagwoerter(v.f0, ['anleitung', 'lesen', 'fragen', 'lehrer', 'erklär', 'anweisung']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Qué haces antes de usar un aparato nuevo?' }, loesungHtml: 'Zuerst die <b>Anleitung lesen</b> bzw. die <b>Lehrkraft fragen</b>.' }); },
+    function () { return aufgabe('Fundamentum 12: Zusammenarbeit', 2, 'Warum ist <b>Ruhe und Aufmerksamkeit</b> beim Experimentieren wichtig?',
+      function (v) { return checkSchlagwoerter(v.f0, ['fehler', 'unfall', 'gefahr', 'sicher', 'konzentr']) ? 1 : 0; },
+      { typ: 'frei', uebersetzungen: { es: '¿Por qué es importante el silencio y la atención durante el experimento?' }, loesungHtml: 'Ruhe und Konzentration verhindern <b>Fehler und Unfälle</b>.' }); }
+  ];
+  return waehle(pool)();
+}
+
+/* ===== Bruchrechnung Hilfen ===== */
+function bruchCheck(zStr, nStr, sollZ, sollN) {
+  LETZTE_LOESUNGEN.push(sollZ + '/' + sollN);
+  const z = parseZahl(zStr), n = parseZahl(nStr);
+  if (isNaN(z) || isNaN(n) || n === 0) return 0;
+  return z * sollN === sollZ * n ? 1 : 0;
+}
+function bruchLoesung(z, n, gekuerzt) {
+  if (gekuerzt) {
+    const g = ggt(z, n);
+    return bruchHtml(z / g, n / g, 'blau') + ' <span class="klein hell">(gekürzt)</span>';
+  }
+  return bruchHtml(z, n, 'blau');
+}
+
+/* ===== 10.1 Übung 5C: Daten ===== */
+function genDaten5() {
+  const A = [];
+  A.push(fundamentumMathe57());
+  const werte1 = [zufall(2, 8), zufall(3, 9), zufall(4, 10), zufall(2, 7)];
+  const summe1 = werte1.reduce(function (s, w) { return s + w; }, 0);
+  A.push(aufgabe('Aufgabe 1: Säulendiagramm ablesen', 3,
+    '<p>a) Wie groß ist die Summe aller Säulenwerte?</p>' + balkenDiagramm(werte1),
+    function (v) { return zahlCheck(v.f0, summe1); }, { typ: 'zahl' }));
+  A.push(aufgabe('Aufgabe 2: Tabelle auswerten', 4,
+    '<p>In einer Urliste stehen die Lieblingsfarben von 10 Kindern: <b>rot, blau, rot, grün, blau, rot, gelb, blau, rot, grün</b>.</p>' +
+    '<p>Wie oft kommt <b>rot</b> vor? <input id="f0" data-idx="0" inputmode="numeric"> &nbsp; Wie oft kommt <b>blau</b> vor? <input id="f1" data-idx="1" inputmode="numeric"></p>',
+    function (v) {
+      const r = zahlCheck(v.f0, 4), b = zahlCheck(v.f1, 3);
+      return { 0: [r * 2, 2], 1: [b * 2, 2] };
+    }, { typ: 'multi', teile: 2 }));
+  A.push(aufgabe('Aufgabe 3: Minimum und Maximum', 2,
+    'Gegeben sind die Zahlen <b>7, 3, 9, 5, 8</b>. Wie groß ist die <b>Spannweite</b> (Maximum − Minimum)?',
+    function (v) { return zahlCheck(v.f0, 6); }, { typ: 'zahl' }));
+  A.push(aufgabe('Aufgabe 4: Durchschnitt', 3,
+    'Vier Kinder haben <b>2, 4, 6 und 8</b> Sammelkarten. Wie viele Karten hat ein Kind <b>im Durchschnitt</b> (arithmetisches Mittel)?',
+    function (v) { return zahlCheck(v.f0, 5); }, { typ: 'zahl' }));
+  A.push(aufgabe('Aufgabe 5: Zahl sortieren', 2,
+    'Ordne die Zahlen der Größe nach, beginnend mit der kleinsten: <b>5, 2, 9, 4</b>. Schreibe sie mit Komma getrennt (z. B. 1, 2, 3, 4).',
+    function (v) { return normText(v.f0) === '2, 4, 5, 9' ? 1 : 0; },
+    { typ: 'text', loesungHtml: 'Richtige Reihenfolge: <b>2, 4, 5, 9</b>.' }));
+  A.push(aufgabe('Aufgabe 6: Urliste lesen', 3,
+    'Urliste der Schuhgrößen: <b>36, 38, 37, 38, 36, 39, 38, 36</b>. Welche Schuhgröße kommt <b>am häufigsten</b> vor (Modalwert)?',
+    function (v) { return zahlCheck(v.f0, 38) || zahlCheck(v.f0, 36) ? 1 : 0; }, { typ: 'zahl' }));
+  A.push(aufgabe('Aufgabe 7: Diagramm zeichnen (Beschreibung)', 4,
+    'Beschreibe mit eigenen Worten, wie man aus einer Urliste ein Säulendiagramm erstellt.',
+    function (v) { return checkSchlagwoerter(v.f0, ['säule', 'balken', 'höhe', 'achse', 'strichliste', 'häufigkeit', 'zählen', 'zeichnen']) ? 1 : 0; },
+    { typ: 'frei', loesungHtml: 'Z. B.: <b>Strichliste</b> erstellen, Häufigkeiten <b>zählen</b>, Achsen beschriften, <b>Säulen</b> in passender Höhe zeichnen.' }));
+  A.push(aufgabe('Aufgabe 8: Wahr oder falsch?', 2,
+    '<p>Entscheide: wahr (w) oder falsch (f)?</p>' +
+    '<p>a) Eine Strichliste hilft beim Zählen. <input id="f0" data-idx="0" maxlength="1" style="width:50px"></p>' +
+    '<p>b) Das Maximum ist der kleinste Wert. <input id="f1" data-idx="1" maxlength="1" style="width:50px"></p>',
+    function (v) {
+      const a = normText(v.f0) === 'w' ? 1 : 0, b = normText(v.f1) === 'f' ? 1 : 0;
+      return { 0: [a, 1], 1: [b, 1] };
+    }, { typ: 'multi', teile: 2,
+      loesungHtml: 'a) <b>wahr</b> &nbsp; b) <b>falsch</b> (das Maximum ist der <b>größte</b> Wert).' }));
+  A.push(aufgabe('Aufgabe 9: Daten deuten', 3,
+    'Im Säulendiagramm sind die Werte <b>Mo: 4, Di: 6, Mi: 6, Do: 2, Fr: 7</b> Regenstunden eingetragen. An wie vielen Tagen regnete es <b>mehr als 5 Stunden</b>?',
+    function (v) { return zahlCheck(v.f0, 3); }, { typ: 'zahl' }));
+  A.push(aufgabe('Aufgabe 10: Mittelwert im Sachkontext', 3,
+    'Lena wirft drei Pfeile: <b>7, 9 und 5 Punkte</b>. Wie viele Punkte erzielt sie <b>im Mittel</b> pro Wurf?',
+    function (v) { return zahlCheck(v.f0, 7); }, { typ: 'zahl' }));
+  return A;
+}
+
+function multiCheck(v, teile) {
+  const out = {};
+  teile.forEach(function (t, i) { out[i] = [t.check(v['f' + i]) * t.p, t.p]; });
+  return out;
+}
+
+/* ===== 10.2 Übung 5C: Grundrechenarten ===== */
+function genGrund5() {
+  const A = [];
+  A.push(fundamentumMathe57());
+  const a1 = zufall(14, 60), b1 = zufall(11, 49);
+  A.push(aufgabe('Aufgabe 1: Addition', 2, 'Berechne: <b>' + a1 + ' + ' + b1 + '</b>',
+    function (v) { return zahlCheck(v.f0, a1 + b1); }, { typ: 'zahl', weg: true }));
+  const a2 = zufall(30, 90), b2 = zufall(11, 29);
+  A.push(aufgabe('Aufgabe 2: Subtraktion', 2, 'Berechne: <b>' + a2 + ' − ' + b2 + '</b>',
+    function (v) { return zahlCheck(v.f0, a2 - b2); }, { typ: 'zahl', weg: true }));
+  const a3 = zufall(6, 12), b3 = zufall(4, 9);
+  A.push(aufgabe('Aufgabe 3: Multiplikation', 2, 'Berechne: <b>' + a3 + ' · ' + b3 + '</b>',
+    function (v) { return zahlCheck(v.f0, a3 * b3); }, { typ: 'zahl', weg: true }));
+  const d4 = zufall(3, 9), erg4 = zufall(4, 12), a4 = d4 * erg4;
+  A.push(aufgabe('Aufgabe 4: Division', 2, 'Berechne: <b>' + a4 + ' : ' + d4 + '</b>',
+    function (v) { return zahlCheck(v.f0, erg4); }, { typ: 'zahl', weg: true }));
+  const d5 = zufall(3, 8), erg5 = zufall(3, 9), a5 = erg5 * d5, b5 = zufall(4, 15);
+  A.push(aufgabe('Aufgabe 5: Punkt vor Strich', 3, 'Berechne: <b>' + a5 + ' : ' + d5 + ' + ' + b5 + '</b>',
+    function (v) { return zahlCheck(v.f0, erg5 + b5); }, { typ: 'zahl', weg: true }));
+  const a6 = zufall(5, 12), b6 = zufall(3, 9), c6 = zufall(2, 6);
+  A.push(aufgabe('Aufgabe 6: Klammern', 3, 'Berechne: <b>(' + a6 + ' − ' + b6 + ') · ' + c6 + '</b>',
+    function (v) { return zahlCheck(v.f0, (a6 - b6) * c6); }, { typ: 'zahl', weg: true }));
+  const q7 = zufall(5, 12), c7 = zufall(3, 7), b7 = zufall(4, 9), a7 = q7 * c7 - b7;
+  A.push(aufgabe('Aufgabe 7: Gemischte Aufgabe', 3, 'Berechne: <b>(' + a7 + ' + ' + b7 + ') : ' + c7 + '</b>',
+    function (v) { return zahlCheck(v.f0, q7); }, { typ: 'zahl', weg: true }));
+  const a8 = zufall(11, 40), b8 = zufall(6, 20), c8 = zufall(5, 15);
+  A.push(aufgabe('Aufgabe 8: Rechenvorteil', 3, 'Berechne geschickt: <b>' + a8 + ' + ' + b8 + ' − ' + a8 + ' + ' + c8 + '</b>',
+    function (v) { return zahlCheck(v.f0, b8 + c8); }, { typ: 'zahl', weg: true }));
+  A.push(aufgabe('Aufgabe 9: Fachbegriffe', 2,
+    'Wie nennt man das Ergebnis einer <b>Multiplikation</b>?',
+    function (v) { return checkSchlagwoerter(v.f0, ['produkt']) ? 1 : 0; },
+    { typ: 'text', loesungHtml: 'Das Ergebnis einer Multiplikation heißt <b>Produkt</b>.' }));
+  A.push(aufgabe('Aufgabe 10: Platzhalter', 3,
+    'Ersetze den Platzhalter: <b>7 · ☐ = 63</b>. Gib die Zahl an, die für ☐ steht.',
+    function (v) { return zahlCheck(v.f0, 9); }, { typ: 'zahl', weg: true }));
+  const anz11 = zufall(3, 9);
+  A.push(aufgabe('Aufgabe 11: Sachaufgabe', 3,
+    'Ein Paket enthält <b>6 Stifte</b>. Wie viele Stifte sind in <b>' + anz11 + ' Paketen</b>?',
+    function (v) { return zahlCheck(v.f0, 6 * anz11); },
+    { typ: 'zahl', weg: true }));
+  return A;
+}
+
+/* ===== 10.3 Testvorbereitung 6C: Kreis, Winkel und Dreieck ===== */
+function winkelSVG(grad) {
+  const r = 70, cx = 120, cy = 110;
+  const rad = grad * Math.PI / 180;
+  const x2 = cx + r * Math.cos(rad), y2 = cy - r * Math.sin(rad);
+  const x3 = cx + r * Math.cos(rad / 2), y3 = cy - r * Math.sin(rad / 2);
+  return '<svg width="400" height="150" viewBox="0 0 400 150" role="img" aria-label="Winkel von etwa ' + grad + ' Grad">'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="#1e3a8a"/>'
+    + '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + r + 30) + '" y2="' + cy + '" stroke="#334155" stroke-width="3"/>'
+    + '<line x1="' + cx + '" y1="' + cy + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#1d4ed8" stroke-width="3"/>'
+    + '<text x="' + x3 + '" y="' + (y3 - 8) + '" font-size="16" font-weight="700" fill="#1e3a8a">α</text>'
+    + '<text x="' + (cx - 12) + '" y="' + (cy + 24) + '" font-size="14" fill="#334155">S</text></svg>';
+}
+function dreieckSVG(a, b, c) {
+  return '<svg width="400" height="190" viewBox="0 0 400 190" role="img" aria-label="Dreieck mit den Seiten ' + a + ', ' + b + ' und ' + c + '">'
+    + '<polygon points="60,150 340,150 160,50" fill="rgba(96,165,250,.25)" stroke="#1d4ed8" stroke-width="3" stroke-linejoin="round"/>'
+    + '<text x="195" y="170" font-size="15" font-weight="700" fill="#1e3a8a">c = ' + c + ' cm</text>'
+    + '<text x="85" y="95" font-size="15" font-weight="700" fill="#1e3a8a">a = ' + a + ' cm</text>'
+    + '<text x="255" y="95" font-size="15" font-weight="700" fill="#1e3a8a">b = ' + b + ' cm</text>'
+    + '<text x="40" y="165" font-size="14" fill="#334155">B</text>'
+    + '<text x="345" y="165" font-size="14" fill="#334155">C</text>'
+    + '<text x="152" y="42" font-size="14" fill="#334155">A</text></svg>';
+}
+function genKreis6() {
+  const A = [];
+  A.push(fundamentumMathe57());
+  A.push(aufgabe('Aufgabe 1: Kreisteile', 2, 'Wie heißt die Strecke vom <b>Mittelpunkt</b> eines Kreises zum Rand?',
+    function (v) { return checkSchlagwoerter(v.f0, ['radius']) ? 1 : 0; },
+    { typ: 'text', uebersetzungen: { en: 'Name the line segment from the centre of the circle to the edge.' },
+      loesungHtml: 'Die Strecke heißt <b>Radius</b>.' }));
+  const r2 = zufall(3, 9);
+  A.push(aufgabe('Aufgabe 2: Durchmesser', 2, 'Ein Kreis hat den Radius <b>r = ' + r2 + ' cm</b>. Wie lang ist der <b>Durchmesser d</b>? (Angabe in cm)',
+    function (v) { return zahlCheck(v.f0, 2 * r2); }, { typ: 'zahl', uebersetzungen: { en: 'Calculate the diameter if the radius is given.' } }));
+  const d3 = zufall(2, 8) * 2;
+  A.push(aufgabe('Aufgabe 3: Kreisumfang (Überschlag)', 3, 'Berechne den ungefähren <b>Umfang</b> eines Kreises mit <b>d = ' + d3 + ' cm</b>. Rechne mit der Überschlagsformel <b>u ≈ 3 · d</b>. (Angabe in cm)',
+    function (v) { return zahlCheck(v.f0, 3 * d3); },
+    { typ: 'zahl', weg: true, uebersetzungen: { en: 'Estimate the circumference of a circle with d = ' + d3 + ' cm. Use u ≈ 3 · d.' },
+      loesungHtml: '<i>u</i> ≈ 3 · ' + d3 + ' cm = <b>' + (3 * d3) + ' cm</b> (Überschlag mit π ≈ 3)' }));
+  const r4 = zufall(2, 7);
+  A.push(aufgabe('Aufgabe 4: Kreisfläche (Überschlag)', 3, 'Berechne den ungefähren <b>Flächeninhalt</b> eines Kreises mit <b>r = ' + r4 + ' cm</b>. Rechne mit der Überschlagsformel <b>A ≈ 3 · r²</b>. (Angabe in cm²)',
+    function (v) { return zahlCheck(v.f0, 3 * r4 * r4); },
+    { typ: 'zahl', weg: true, uebersetzungen: { en: 'Estimate the area of a circle with r = ' + r4 + ' cm. Use A ≈ 3 · r².' },
+      loesungHtml: '<i>A</i> ≈ 3 · ' + r4 + '² = 3 · ' + (r4 * r4) + ' = <b>' + (3 * r4 * r4) + ' cm²</b> (Überschlag mit π ≈ 3)' }));
+  const grad5 = waehle([30, 45, 90, 120, 150]);
+  const art5 = grad5 < 90 ? 'spitz' : (grad5 === 90 ? 'recht' : 'stumpf');
+  A.push(aufgabe('Aufgabe 5: Winkelart erkennen', 2,
+    '<p>Welche <b>Winkelart</b> ist abgebildet?</p>' + winkelSVG(grad5) +
+    '<p><label><input type="radio" name="f0" value="spitz"> spitzer Winkel</label><br>' +
+    '<label><input type="radio" name="f0" value="recht"> rechter Winkel</label><br>' +
+    '<label><input type="radio" name="f0" value="stumpf"> stumpfer Winkel</label></p>',
+    function (v) { return v.f0 === art5 ? 1 : 0; },
+    { typ: 'wahl', uebersetzungen: { en: 'Which angle is shown? Choose the correct answer.' },
+      loesungHtml: 'Abgebildet ist ein <b>' + art5 + 'er Winkel</b> (' + grad5 + '°).' }));
+  A.push(aufgabe('Aufgabe 6: Rechter Winkel', 2, 'Wie viele Grad hat ein <b>rechter Winkel</b>?',
+    function (v) { return zahlCheck(v.f0, 90); }, { typ: 'zahl', uebersetzungen: { en: 'How many degrees does a right angle have?' } }));
+  A.push(aufgabe('Aufgabe 7: Winkelsumme', 2, 'Die drei Innenwinkel eines Dreiecks ergeben zusammen wie viele Grad?',
+    function (v) { return zahlCheck(v.f0, 180); }, { typ: 'zahl', uebersetzungen: { en: 'The three angles of a triangle add up to how many degrees?' } }));
+  const opts8 = [
+    'Die Seite c ist die längste Seite.',
+    'Das Dreieck ist gleichseitig.',
+    'Alle Winkel sind gleich groß.'
+  ];
+  A.push(aufgabe('Aufgabe 8: Dreieck beurteilen', 3,
+    '<p>Betrachte das Dreieck und wähle die <b>richtige Aussage</b>.</p>' + dreieckSVG(5, 6, 7) +
+    opts8.map(function (o, i) { return '<label><input type="radio" name="f0" value="' + i + '"> ' + o + '</label>'; }).join('<br>'),
+    function (v) { return mc1Check(v.f0, opts8, 0); }, { typ: 'wahl', uebersetzungen: { en: 'Which statement about the triangle is true? Choose the correct answer.' } }));
+  const grad9 = waehle([25, 40, 60, 75, 95, 110, 130, 160]);
+  const art9 = grad9 < 90 ? 'spitz' : (grad9 === 90 ? 'recht' : 'stumpf');
+  A.push(aufgabe('Aufgabe 9: Winkel einordnen', 2, 'Ein Winkel misst <b>' + grad9 + '°</b>. Ist er <b>spitz, recht oder stumpf</b>?',
+    function (v) { return normText(v.f0).indexOf(art9) !== -1 ? 1 : 0; },
+    { typ: 'text', uebersetzungen: { en: 'Classify the angle: acute, right or obtuse?' },
+      loesungHtml: grad9 + '° ist ein <b>' + art9 + 'er Winkel</b>.' }));
+  A.push(aufgabe('Aufgabe 10: Größter Winkel im Dreieck', 3,
+    '<p>Welcher Eckpunkt des Dreiecks hat den <b>größten Innenwinkel</b>?</p>' + dreieckSVG(5, 6, 7) +
+    '<p><label><input type="radio" name="f0" value="A"> A</label><br><label><input type="radio" name="f0" value="B"> B</label><br><label><input type="radio" name="f0" value="C"> C</label></p>',
+    function (v) { return v.f0 === 'A' ? 1 : 0; },
+    { typ: 'wahl', uebersetzungen: { en: 'Which of the three angles in the triangle is the largest?' },
+      loesungHtml: 'Der größte Innenwinkel liegt gegenüber der längsten Seite (c = 7 cm), also an Eckpunkt <b>A</b>.' }));
+  A.push(aufgabe('Aufgabe 11: Sehne', 2, 'Beschreibe mit eigenen Worten, was eine <b>Sehne</b> eines Kreises ist.',
+    function (v) { return checkSchlagwoerter(v.f0, ['strecke', 'zwei punkte', 'rand', 'verbind', 'kreis']) ? 1 : 0; },
+    { typ: 'frei', uebersetzungen: { en: 'Describe in your own words what a chord of a circle is.' },
+      loesungHtml: 'Eine <b>Sehne</b> ist eine Strecke, die <b>zwei Punkte auf dem Kreisrand</b> verbindet.' }));
+  return A;
+}
+
+/* ===== Bruchaufgabe-Helfer (85 % bei nicht gekürzt) ===== */
+function bruchAufgabe(titel, punkte, html, z, n, extra) {
+  extra = extra || {};
+  return aufgabe(titel, punkte, html, function (v) {
+    const zs = parseZahl(v.f0z), ns = parseZahl(v.f0n);
+    if (isNaN(zs) || isNaN(ns) || ns === 0) return { 0: [0, punkte] };
+    if (zs * n !== z * ns) return { 0: [0, punkte] };
+    const voll = (ggt(zs, ns) === 1) ? punkte : Math.round(punkte * 0.85 * 100) / 100;
+    return { 0: [voll, punkte] };
+  }, Object.assign({ typ: 'bruch', loesungHtml: bruchLoesung(z, n, true) }, extra));
+}
+
+/* ===== 10.5 Testvorbereitung 7B: Brüche ===== */
+function genBrueche7(kurs) {
+  const A = [];
+  A.push(fundamentumMathe57());
+  const ek = (kurs === 'EK');
+  const z1 = zufall(2, 5), n1 = zufall(6, 9);
+  A.push(aufgabe('Aufgabe 1: Bruch ablesen', 2,
+    '<p>Welcher Bruch ist dargestellt? Gib Zähler und Nenner an.</p>' +
+    '<svg width="400" height="130" viewBox="0 0 400 130" role="img" aria-label="Rechteck, in ' + n1 + ' Teile geteilt, ' + z1 + ' gefärbt">' +
+    (function () { let s = ''; const w = 360 / n1; for (let i = 0; i < n1; i++) { s += '<rect x="' + (20 + i * w) + '" y="30" width="' + (w - 4) + '" height="70" rx="6" fill="' + (i < z1 ? '#60a5fa' : '#e2e8f0') + '" stroke="#1d4ed8" stroke-width="2"/>'; } return s; })() + '</svg>',
+    function (v) { return { 0: [bruchCheck(v.f0z, v.f0n, z1, n1), 2] }; }, { typ: 'bruch' }));
+  if (ek) {
+    A.push(bruchAufgabe('Aufgabe 2: Kürzen', 2, 'Kürze vollständig: ' + bruchHtml(12, 18), 2, 3));
+    A.push(bruchAufgabe('Aufgabe 3: Erweitern', 2, 'Erweitere ' + bruchHtml(3, 4) + ' mit <b>5</b>.', 15, 20));
+    A.push(bruchAufgabe('Aufgabe 4: Addieren', 3, 'Berechne und kürze vollständig: ' + bruchHtml(1, 4) + ' + ' + bruchHtml(1, 4), 1, 2));
+    A.push(bruchAufgabe('Aufgabe 5: Subtrahieren', 3, 'Berechne und kürze vollständig: ' + bruchHtml(5, 6) + ' − ' + bruchHtml(1, 6), 2, 3));
+    A.push(bruchAufgabe('Aufgabe 6: Multiplizieren', 3, 'Berechne und kürze vollständig: ' + bruchHtml(2, 3) + ' · ' + bruchHtml(3, 4), 1, 2));
+    A.push(bruchAufgabe('Aufgabe 7: Dividieren', 3, 'Berechne und kürze vollständig: ' + bruchHtml(3, 5) + ' : ' + bruchHtml(2, 5), 3, 2));
+    A.push(bruchAufgabe('Aufgabe 8: Gemischte Zahl', 3, 'Wandle in einen unechten Bruch um: ' + gemischtHtml(2, 1, 3), 7, 3));
+    A.push(aufgabe('Aufgabe 9: Vergleichen', 2, 'Welcher Bruch ist größer: ' + bruchHtml(3, 7) + ' oder ' + bruchHtml(4, 9) + '? Gib den größeren Bruch an.',
+      function (v) { return { 0: [bruchCheck(v.f0z, v.f0n, 4, 9), 2] }; }, { typ: 'bruch', loesungHtml: bruchLoesung(4, 9) }));
+    A.push(aufgabe('Aufgabe 10: Anteil', 3, 'Von <b>24</b> Schülern sind ' + bruchHtml(3, 4) + ' in einer AG. Wie viele Schüler sind das?',
+      function (v) { return zahlCheck(v.f0, 18); }, { typ: 'zahl', weg: true }));
+    A.push(aufgabe('Aufgabe 11: Sachaufgabe', 3, 'Eine Pizza wird in <b>8</b> gleiche Stücke geschnitten. Anna isst ' + bruchHtml(1, 8) + ', Ben isst ' + bruchHtml(3, 8) + '. Welcher Bruchteil der Pizza bleibt übrig? (gekürzt angeben)',
+      function (v) { return { 0: [bruchCheck(v.f0z, v.f0n, 1, 2), 3] }; }, { typ: 'bruch', weg: true, loesungHtml: bruchLoesung(1, 2) }));
+  } else {
+    const d1 = zufall(2, 4);
+    A.push(bruchAufgabe('Aufgabe 2: Kürzen', 2, 'Kürze vollständig: ' + bruchHtml(2 * d1, 4 * d1), 1, 2));
+    A.push(bruchAufgabe('Aufgabe 3: Erweitern', 2, 'Erweitere ' + bruchHtml(1, 2) + ' mit <b>4</b>.', 4, 8));
+    A.push(bruchAufgabe('Aufgabe 4: Addieren (gleichnamig)', 2, 'Berechne: ' + bruchHtml(2, 7) + ' + ' + bruchHtml(3, 7), 5, 7));
+    A.push(bruchAufgabe('Aufgabe 5: Subtrahieren (gleichnamig)', 2, 'Berechne: ' + bruchHtml(5, 8) + ' − ' + bruchHtml(2, 8), 3, 8));
+    A.push(bruchAufgabe('Aufgabe 6: Kürzen', 2, 'Kürze vollständig: ' + bruchHtml(6 * d1, 7 * d1), 6, 7));
+    A.push(aufgabe('Aufgabe 7: Größenvergleich', 2, 'Welcher Bruch ist größer: ' + bruchHtml(1, 2) + ' oder ' + bruchHtml(1, 3) + '? Gib den größeren Bruch an.',
+      function (v) { return { 0: [bruchCheck(v.f0z, v.f0n, 1, 2), 2] }; }, { typ: 'bruch', loesungHtml: bruchLoesung(1, 2) }));
+    A.push(aufgabe('Aufgabe 8: Anteil bestimmen', 2, 'Ein Rechteck ist in <b>6</b> gleiche Teile geteilt, <b>1</b> Teil ist gefärbt. Welcher Bruchteil ist gefärbt?',
+      function (v) { return { 0: [bruchCheck(v.f0z, v.f0n, 1, 6), 2] }; }, { typ: 'bruch', loesungHtml: bruchLoesung(1, 6) }));
+    A.push(aufgabe('Aufgabe 9: Bruch am Alltag', 2, 'Eine Stunde hat 60 Minuten. Welcher Bruchteil einer Stunde sind <b>30 Minuten</b>? (gekürzt)',
+      function (v) { return { 0: [bruchCheck(v.f0z, v.f0n, 1, 2), 2] }; }, { typ: 'bruch', loesungHtml: bruchLoesung(1, 2) }));
+    A.push(aufgabe('Aufgabe 10: Anteil berechnen', 3, 'Von <b>12</b> Äpfeln ist ' + bruchHtml(1, 4) + ' rot. Wie viele Äpfel sind rot?',
+      function (v) { return zahlCheck(v.f0, 3); }, { typ: 'zahl', weg: true }));
+    A.push(aufgabe('Aufgabe 11: Erklären', 3, 'Erkläre mit eigenen Worten, was der <b>Nenner</b> eines Bruchs angibt.',
+      function (v) { return checkSchlagwoerter(v.f0, ['teile', 'gleich', 'geteilt', 'zerlegt', 'anzahl', 'unten']) ? 1 : 0; },
+      { typ: 'frei', loesungHtml: 'Der <b>Nenner</b> (unten) gibt an, in wie viele <b>gleiche Teile</b> das Ganze geteilt ist.' }));
+  }
+  return A;
+}
+
+/* ===== MC-Hilfen ===== */
+function mc1Check(eingabe, optionen, richtigIdx) {
+  if (optionen) LETZTE_LOESUNGEN.push(optionen[richtigIdx]);
+  return parseInt(eingabe, 10) === richtigIdx ? 1 : 0;
+}
+function mcxCheck(gewaehlt, richtige) {
+  LETZTE_LOESUNGEN.push('Auswahl Nr. ' + richtige.map(function (i) { return i + 1; }).join(', '));
+  const g = (gewaehlt || []).slice().sort().join(',');
+  const r = richtige.slice().sort().join(',');
+  return g === r ? 1 : 0;
+}
+
+/* ===== 10.6 LZK Physik 7B/7F: Sicherheit im Physikunterricht ===== */
+function genPhysikSicherheit() {
+  const A = [];
+  A.push(fundamentumPhysik());
+  const rf = [
+    ['Aufgabe 2: Regelverhalten', 'Im Physikraum darf man essen und trinken.', 'f', '¿Es verdadera la afirmación? Elige correctamente.'],
+    ['Aufgabe 3: Anweisungen', 'Vor jedem Experiment hört man den Anweisungen der Lehrkraft zu.', 'w', '¿Es verdadera la afirmación? Elige correctamente.'],
+    ['Aufgabe 4: Nach dem Experiment', 'Nach dem Experiment wäscht man sich die Hände.', 'w', '¿Es verdadera la afirmación? Elige correctamente.']
+  ];
+  rf.forEach(function (r) {
+    A.push(aufgabe(r[0], 2,
+      '<p>Richtig (w) oder falsch (f)?</p><p><b>' + r[1] + '</b></p>',
+      function (v) { return normText(v.f0) === r[2] ? 1 : 0; },
+      { typ: 'text', uebersetzungen: { es: r[3] },
+        loesungHtml: 'Die Aussage ist <b>' + (r[2] === 'w' ? 'richtig' : 'falsch') + '</b>.' }));
+  });
+  const bank = mischen(['Schutzbrille', 'Notausgang', 'aufmerksam', 'waschen', 'Anweisungen', 'Banane', 'Fußball']);
+  A.push(aufgabe('Aufgabe 5: Lückentext', 4,
+    '<p>Ergänze den Text mit passenden Wörtern aus dem Wortspeicher. <b>Zwei Wörter passen nicht!</b></p>' +
+    '<p class="wortbank">' + bank.join(' &nbsp;•&nbsp; ') + '</p>' +
+    '<p>Beim Experimentieren trage ich eine <input id="f0" data-idx="0">, damit meine Augen geschützt sind. ' +
+    'Ich arbeite <input id="f1" data-idx="1"> und höre auf die <input id="f2" data-idx="2"> der Lehrkraft. ' +
+    'Nach dem Experiment <input id="f3" data-idx="3"> ich mir die Hände.</p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return normText(s) === 'schutzbrille' ? 1 : 0; }, p: 1 },
+        { check: function (s) { return normText(s) === 'aufmerksam' ? 1 : 0; }, p: 1 },
+        { check: function (s) { return normText(s) === 'anweisungen' ? 1 : 0; }, p: 1 },
+        { check: function (s) { const t = normText(s); return (t === 'wasche' || t === 'waschen') ? 1 : 0; }, p: 1 }
+      ]);
+    }, { typ: 'multi', teile: 4, uebersetzungen: { es: 'Completa el texto con las palabras del banco de palabras.' },
+      loesungHtml: '<b>Schutzbrille</b> &nbsp;•&nbsp; <b>aufmerksam</b> &nbsp;•&nbsp; <b>Anweisungen</b> &nbsp;•&nbsp; <b>wasche</b>' }));
+  A.push(aufgabe('Aufgabe 6: Regel erkennen', 3,
+    '<p>Welche Regel gilt im Physikraum? Wähle <b>eine</b> Antwort.</p>' +
+    ['Ich renne durch den Raum, um schneller fertig zu werden.',
+     'Ich folge den Anweisungen der Lehrkraft und arbeite konzentriert.',
+     'Ich probiere eigene Experimente ohne Absprache aus.'
+    ].map(function (o, i) { return '<label><input type="radio" name="f0" value="' + i + '"> ' + o + '</label>'; }).join('<br>'),
+    function (v) { return mc1Check(v.f0, null, 1); },
+    { typ: 'wahl', uebersetzungen: { es: '¿Qué regla es correcta? Elige una respuesta.' },
+      loesungHtml: 'Richtig ist: <b>Ich folge den Anweisungen der Lehrkraft und arbeite konzentriert.</b>' }));
+  A.push(aufgabe('Aufgabe 7: Maßnahmen bei Unfall', 3,
+    '<p>Ein:e Mitschüler:in verätzt sich beim Experiment. Welche Maßnahmen sind <b>richtig</b>? Wähle <b>alle</b> richtigen Antworten.</p>' +
+    ['Sofort die Lehrkraft informieren.', 'Die betroffene Stelle mit Wasser spülen.',
+     'Weitermachen und nichts sagen.', 'Erste Hilfe holen / Ersthelfer rufen.'
+    ].map(function (o, i) { return '<label><input type="checkbox" name="f0" value="' + i + '"> ' + o + '</label>'; }).join('<br>'),
+    function (v) { return mcxCheck(v.f0, [0, 1, 3]); },
+    { typ: 'mcx', uebersetzungen: { es: '¿Qué medidas son correctas? Elige todas las respuestas correctas.' },
+      loesungHtml: 'Richtig sind: <b>Lehrkraft informieren, mit Wasser spülen, Erste Hilfe holen</b>.' }));
+  A.push(aufgabe('Aufgabe 8: Gefahrensymbole', 3,
+    '<p>Welche Symbole sind <b>Gefahrenzeichen</b>? Wähle <b>alle</b> richtigen Antworten.</p>' +
+    ['Flamme (entzündbar)', 'Totenkopf (giftig)', 'Lächelnder Smiley (freundlich)', 'Ausrufezeichen (gesundheitsschädlich)'
+    ].map(function (o, i) { return '<label><input type="checkbox" name="f0" value="' + i + '"> ' + o + '</label>'; }).join('<br>'),
+    function (v) { return mcxCheck(v.f0, [0, 1, 3]); },
+    { typ: 'mcx', uebersetzungen: { es: '¿Qué símbolos advierten de peligro? Elige todas las respuestas correctas.' },
+      loesungHtml: 'Gefahrenzeichen sind: <b>Flamme, Totenkopf und Ausrufezeichen</b> – nicht der Smiley.' }));
+  return A;
+}
+
+/* ===== 10.4 Vorlage LZK Informatik 6C: Codes (28 P) ===== */
+function genCodesVorlage() {
+  const A = [];
+  A.push(aufgabe('Aufgabe 1: Wozu Codes und Geheimschriften?', 2,
+    '<p>Wozu wurden Codes und Geheimschriften früher verwendet? Kreuze <b>zwei</b> richtige Antworten an. (2 P)</p>' +
+    ['Um geheime Nachrichten zu übermitteln.',
+     'Um Nachrichten vor fremden Menschen zu schützen.',
+     'Um schneller zu kochen.',
+     'Um Bilder zu malen.'
+    ].map(function (o, i) { return '<label><input type="checkbox" name="f0" value="' + i + '"> ' + o + '</label>'; }).join('<br>'),
+    function (v) { return mcxCheck(v.f0, [0, 1]) * 2; },
+    { typ: 'mcx', uebersetzungen: { en: 'What were codes and secret scripts used for in the past? Tick two correct answers.' },
+      loesungHtml: 'Richtig sind: <b>geheime Nachrichten übermitteln</b> und <b>Nachrichten vor fremden Menschen schützen</b>.' }));
+  const bank = mischen(['Punkten', 'Strichen', 'Kriegen', 'Flaggen', 'Pizza']);
+  A.push(aufgabe('Aufgabe 2: Sätze ergänzen', 6,
+    '<p>Ergänze die Sätze mit den Wörtern aus der Wortbank. (6 P)</p>' +
+    '<p class="wortbank">' + bank.join(' &nbsp;•&nbsp; ') + '</p>' +
+    '<p>1. Mit dem Morsecode wurden Nachrichten mithilfe von <input id="f0" data-idx="0" style="width:120px"> und <input id="f1" data-idx="1" style="width:120px"> übermittelt.</p>' +
+    '<p>2. Früher wurden geheime Nachrichten zum Beispiel in <input id="f2" data-idx="2" style="width:120px"> verschlüsselt.</p>' +
+    '<p>3. Schiffe konnten mithilfe von Zeichen oder <input id="f3" data-idx="3" style="width:120px"> Nachrichten austauschen.</p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return /punkt|strich/.test(normText(s)) ? 1 : 0; }, p: 2 },
+        { check: function (s) { return /punkt|strich/.test(normText(s)) ? 1 : 0; }, p: 2 },
+        { check: function (s) { return normText(s).indexOf('krieg') !== -1 ? 1 : 0; }, p: 1 },
+        { check: function (s) { return normText(s).indexOf('flagg') !== -1 ? 1 : 0; }, p: 1 }
+      ]);
+    }, { typ: 'multi', teile: 4, uebersetzungen: { en: 'Complete the sentences with the words from the word bank.' },
+      loesungHtml: '1. <b>Punkten</b> und <b>Strichen</b> &nbsp; 2. <b>Kriegen</b> &nbsp; 3. <b>Flaggen</b>' }));
+  A.push(aufgabe('Aufgabe 3: Geheimnachricht entschlüsseln', 5,
+    '<p>Jedes Zeichen steht für einen Buchstaben. (5 P)</p>' +
+    '<p class="wortbank">&#9733; = H &nbsp;•&nbsp; &#9679; = A &nbsp;•&nbsp; &#9650; = L &nbsp;•&nbsp; &#9632; = O &nbsp;•&nbsp; &#9670; = M &nbsp;•&nbsp; &#9728; = I</p>' +
+    '<p>a) Entschlüssle die Nachricht: &#9733; &#9679; &#9650; &#9650; &#9632; &nbsp; <input id="f0" data-idx="0" style="width:130px"> (3 P)</p>' +
+    '<p>b) Entschlüssle das Wort: &#9670; &#9679; &#9728; &nbsp; <input id="f1" data-idx="1" style="width:130px"> (2 P)</p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return normText(s) === 'hallo' ? 1 : 0; }, p: 3 },
+        { check: function (s) { return normText(s) === 'mai' ? 1 : 0; }, p: 2 }
+      ]);
+    }, { typ: 'multi', teile: 2, uebersetzungen: { en: 'Decrypt the messages with the symbol table.' },
+      loesungHtml: 'a) &#9733;=H &#9679;=A &#9650;=L &#9632;=O &rarr; <b>HALLO</b> &nbsp; b) &#9670;=M &#9679;=A &#9728;=I &rarr; <b>MAI</b>' }));
+  A.push(aufgabe('Aufgabe 4: Erfinde deinen eigenen Code!', 10,
+    '<p>Jetzt bist du an der Reihe! Erfinde deine eigene Geheimschrift. Du kannst Zahlen, Formen oder selbst gemalte Zeichen verwenden. (10 P)</p>' +
+    '<p>a) Schreibe eine geheime Nachricht. Verwende deinen Code, um ein Wort oder eine kurze Nachricht zu verschlüsseln. (5 P)</p>' +
+    '<textarea id="f0" data-idx="0" rows="2" placeholder="Meine geheime Nachricht …"></textarea>' +
+    '<p>b) Erkläre deinen Code: Wie kann jemand deine Nachricht entschlüsseln? (5 P)</p>' +
+    '<textarea id="f1" data-idx="1" rows="3" placeholder="So funktioniert mein Code …"></textarea>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return String(s || '').trim().length >= 3 ? 1 : 0; }, p: 5 },
+        { check: function (s) { return String(s || '').trim().length >= 8 ? 1 : 0; }, p: 5 }
+      ]);
+    }, { typ: 'multi', teile: 2, uebersetzungen: { en: 'Invent your own code: a) write a secret message, b) explain how to decrypt it.' },
+      loesungHtml: 'Individuelle Lösung – die Nachricht muss zum erklärten Code passen.' }));
+  A.push(aufgabe('Aufgabe 5: Codes im Alltag', 5,
+    '<p>a) Nenne ein Beispiel, bei dem heute Codes verwendet werden. (2 P)</p>' +
+    '<input id="f0" data-idx="0" style="max-width:320px">' +
+    '<p>b) Warum ist es manchmal sinnvoll, eine Nachricht zu verschlüsseln? (2 P)</p>' +
+    '<input id="f1" data-idx="1" style="max-width:320px">' +
+    '<p>c) Was braucht jemand, um deine Geheimnachricht lesen zu können? (1 P)</p>' +
+    '<input id="f2" data-idx="2" style="max-width:320px">',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return checkSchlagwoerter(s, ['qr', 'barcode', 'strichcode', 'passwort', 'pin', 'code', 'verschlüssel', 'morse', 'binär', 'zahlenschloss']) ? 1 : 0; }, p: 2 },
+        { check: function (s) { return checkSchlagwoerter(s, ['schutz', 'schütz', 'sicher', 'geheim', 'privat', 'fremd', 'lesen', 'dieb', 'klau']) ? 1 : 0; }, p: 2 },
+        { check: function (s) { return checkSchlagwoerter(s, ['schlüssel', 'code', 'kenntnis', 'wissen', 'entschlüssel', 'übersetz', 'lösung', 'tabelle', 'regel', 'key']) ? 1 : 0; }, p: 1 }
+      ]);
+    }, { typ: 'multi', teile: 3, uebersetzungen: { en: 'Codes in everyday life: a) give an example, b) why encrypt messages, c) what is needed to read your message.' },
+      loesungHtml: 'a) z. B. <b>QR-Code, Passwort/PIN</b> &nbsp; b) damit <b>fremde Personen sie nicht lesen</b> können &nbsp; c) den <b>Schlüssel</b> (Übersetzungstabelle/Regel).' }));
+  return A;
+}
+
+/* ===== 10.7 Vorlage Testvorbereitung 9B/9C: Potenzen, Wurzel und Kreis (62 P) ===== */
+function genPotenzenVorlage() {
+  const A = [];
+  A.push(aufgabe('Teil 1 – Ohne Taschenrechner und ohne Formelsammlung', 0, '', null, { typ: 'abschnitt' }));
+  A.push(aufgabe('Fundamentum 1: Als Potenz schreiben', 3,
+    '<p>Schreibe als Potenz. Gib die Basis und den Exponenten an. (je 1 P)</p>' +
+    '<p>5 · 5 · 5 = <input id="f0" data-idx="0" style="width:90px" placeholder="z. B. 5³"></p>' +
+    '<p>Basis: <input id="f1" data-idx="1" style="width:70px"> &nbsp; Exponent: <input id="f2" data-idx="2" style="width:70px"></p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { const t = normText(s).replace(/\s/g, ''); return (t === '5³' || t === '5^3' || t === '5**3' || t === '5hoch3') ? 1 : 0; }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 5); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 3); }, p: 1 }
+      ]);
+    }, { typ: 'multi', teile: 3,
+      loesungHtml: '5 · 5 · 5 = <b>5<sup>3</sup></b> &nbsp; Basis: <b>5</b>, Exponent: <b>3</b>' }));
+  A.push(aufgabe('Fundamentum 2: Rechne im Kopf', 6,
+    '<p>Trage dein Ergebnis in die Lücke ein. (je 1 P)</p>' +
+    '<p>a) 10<sup>2</sup> = <input id="f0" data-idx="0" style="width:80px"> &nbsp; b) (−2)<sup>3</sup> = <input id="f1" data-idx="1" style="width:80px"> &nbsp; c) ∛64 = <input id="f2" data-idx="2" style="width:80px"></p>' +
+    '<p>d) √0,25 = <input id="f3" data-idx="3" style="width:80px"> &nbsp; e) 2<sup>4</sup> = <input id="f4" data-idx="4" style="width:80px"> &nbsp; f) √' + bruchHtml(36, 25) + ' = <input id="f5" data-idx="5" style="width:80px"></p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return zahlCheck(s, 100); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, -8); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 4); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 0.5); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 16); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 1.2); }, p: 1 }
+      ]);
+    }, { typ: 'multi', teile: 6,
+      loesungHtml: 'a) <b>100</b> &nbsp; b) <b>−8</b> &nbsp; c) <b>4</b> (4³ = 64) &nbsp; d) <b>0,5</b> &nbsp; e) <b>16</b> &nbsp; f) <b>1,2</b> (= 6/5)' }));
+  A.push(aufgabe('Fundamentum 3: Ergänze die Lücken', 6,
+    '<p>Ergänze die Lücken. (je 1 P)</p>' +
+    '<p>a) <input id="f0" data-idx="0" style="width:70px"><sup>2</sup> = 81 &nbsp; b) <input id="f1" data-idx="1" style="width:70px"><sup>2</sup> = 0,09 &nbsp; c) <input id="f2" data-idx="2" style="width:70px"><sup>3</sup> = −125</p>' +
+    '<p>d) 2<sup><input id="f3" data-idx="3" style="width:60px"></sup> = 32 &nbsp; e) √<input id="f4" data-idx="4" style="width:70px"> = 6 &nbsp; f) <input id="f5" data-idx="5" style="width:70px"><sup>4</sup> = 10000</p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(Math.abs(n) - 9) < 0.011 ? 1 : 0; }, p: 1 },
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(Math.abs(n) - 0.3) < 0.011 ? 1 : 0; }, p: 1 },
+        { check: function (s) { return zahlCheck(s, -5); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 5); }, p: 1 },
+        { check: function (s) { return zahlCheck(s, 36); }, p: 1 },
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(Math.abs(n) - 10) < 0.011 ? 1 : 0; }, p: 1 }
+      ]);
+    }, { typ: 'multi', teile: 6,
+      loesungHtml: 'a) <b>9 (oder −9)</b> &nbsp; b) <b>0,3 (oder −0,3)</b> &nbsp; c) <b>−5</b> &nbsp; d) <b>5</b> &nbsp; e) <b>36</b> &nbsp; f) <b>10 (oder −10)</b>' }));
+  A.push(aufgabe('Fundamentum 4: Wurzelgesetze', 6,
+    '<p>Berechne. Beachte die Wurzelgesetze. (je 2 P)</p>' +
+    '<p>a) √5 · √20 = <input id="f0" data-idx="0" style="width:80px"></p>' +
+    '<p>b) √0,5 · √100 = <input id="f1" data-idx="1" style="width:80px"> (als Dezimalzahl, zwei Stellen)</p>' +
+    '<p>c) √125 : √5 = <input id="f2" data-idx="2" style="width:80px"></p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return zahlCheck(s, 10); }, p: 2 },
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(n - 7.07) < 0.011 ? 1 : 0; }, p: 2 },
+        { check: function (s) { return zahlCheck(s, 5); }, p: 2 }
+      ]);
+    }, { typ: 'multi', teile: 3,
+      loesungHtml: 'a) √(5 · 20) = √100 = <b>10</b> &nbsp; b) √(0,5 · 100) = √50 ≈ <b>7,07</b> &nbsp; c) √(125 : 5) = √25 = <b>5</b>' }));
+  A.push(aufgabe('Fundamentum 5: Jonas Rechnung', 2,
+    '<p>Jonah rechnet in einer Hausaufgabe: √36 + √64 = √(36 + 64) = √100 = 10.</p>' +
+    '<p>a) Hat Jonah Recht? <label><input type="radio" name="f0" value="ja"> Ja</label> <label><input type="radio" name="f0" value="nein"> Nein</label> (1 P)</p>' +
+    '<p>b) Erkläre Jonah in deinen eigenen Worten, welchen Fehler er gemacht hat und wie die Aufgabe richtig zu lösen ist. (1 P)</p>' +
+    '<textarea id="f1" data-idx="1" rows="2"></textarea>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return normText(s) === 'nein' ? 1 : 0; }, p: 1 },
+        { check: function (s) { return checkSchlagwoerter(s, ['einzeln', 'getrennt', 'zuerst', 'addier', '6', '8', '14', 'nicht', 'darf']) ? 1 : 0; }, p: 1 }
+      ]);
+    }, { typ: 'multi', teile: 2,
+      loesungHtml: 'a) <b>Nein</b>. b) Man darf unter der Wurzel <b>nicht addieren</b>: richtig ist √36 + √64 = 6 + 8 = <b>14</b>.' }));
+  A.push(aufgabe('Teil 2 – Mit Taschenrechner und Formelsammlung', 0, '', null, { typ: 'abschnitt' }));
+  A.push(aufgabe('Aufgabe 1: Wurzeln einordnen', 3,
+    '<p>Gib an, zwischen welchen natürlichen Zahlen die Quadratwurzel liegt. Schreibe wie im Beispiel. (je 1 P)</p>' +
+    '<p class="klein">Beispiel: 6 &lt; √45 &lt; 7, da 6² = 36 &lt; 45 &lt; 49 = 7²</p>' +
+    '<p>a) <input id="f0" data-idx="0" style="width:55px"> &lt; √20 &lt; <input id="f1" data-idx="1" style="width:55px"></p>' +
+    '<p>b) <input id="f2" data-idx="2" style="width:55px"> &lt; √8 &lt; <input id="f3" data-idx="3" style="width:55px"></p>' +
+    '<p>c) <input id="f4" data-idx="4" style="width:55px"> &lt; √85 &lt; <input id="f5" data-idx="5" style="width:55px"></p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { return zahlCheck(s, 4); }, p: 0.5 },
+        { check: function (s) { return zahlCheck(s, 5); }, p: 0.5 },
+        { check: function (s) { return zahlCheck(s, 2); }, p: 0.5 },
+        { check: function (s) { return zahlCheck(s, 3); }, p: 0.5 },
+        { check: function (s) { return zahlCheck(s, 9); }, p: 0.5 },
+        { check: function (s) { return zahlCheck(s, 10); }, p: 0.5 }
+      ]);
+    }, { typ: 'multi', teile: 6,
+      loesungHtml: 'a) <b>4 &lt; √20 &lt; 5</b> (16 &lt; 20 &lt; 25) &nbsp; b) <b>2 &lt; √8 &lt; 3</b> (4 &lt; 8 &lt; 9) &nbsp; c) <b>9 &lt; √85 &lt; 10</b> (81 &lt; 85 &lt; 100)' }));
+  A.push(aufgabe('Aufgabe 2: Stellungnahme', 3,
+    '<p>Mia behauptet: „Wenn man die Seitenlänge eines Quadrats verdoppelt, verdoppelt sich auch der Flächeninhalt des Quadrats.“</p>' +
+    '<p>Nimm begründet Stellung zu Mias Behauptung. Nutze für deine Begründung eine Rechnung mit einem selbst gewählten Beispiel und/oder eine Skizze.</p>' +
+    '<textarea id="f0" data-idx="0" rows="3"></textarea>',
+    function (v) { return checkSchlagwoerter(v.f0, ['vierfach', 'vervierfach', '4-fach', '4 fach', 'falsch', 'nein', 'stimmt nicht', 'quadrat', 'a²', 'a^2']) ? 1 : 0; },
+    { typ: 'frei',
+      loesungHtml: 'Die Behauptung ist <b>falsch</b>: Verdoppelt man die Seitenlänge, <b>vervierfacht</b> sich der Flächeninhalt, z. B. 2 cm → 4 cm², aber 4 cm → 16 cm².' }));
+  const rfm = [
+    { text: 'Für alle reellen Zahlen a gilt: Das Quadrat der Zahl ist nicht negativ, also a² ≥ 0.', richtig: 'w' },
+    { text: 'Die Quadratwurzel einer Quadratzahl ist immer eine ungerade Zahl.', richtig: 'f' },
+    { text: 'Wenn die Basis negativ ist, so ist bei geraden Exponenten die ganze Potenz negativ.', richtig: 'f' }
+  ];
+  A.push(aufgabe('Aufgabe 3: Wahr oder falsch?', 3,
+    '<p>Kreuze an, ob die Aussage wahr oder falsch ist. Suche dir anschließend eine falsche Aussage aus und widerlege sie mit einem Gegenbeispiel oder einer Korrektur. (3 P)</p>' +
+    rfm.map(function (it, i) {
+      return '<p>' + (i + 1) + ') ' + it.text + ' <label><input type="radio" name="f' + i + '" value="w"> wahr</label> <label><input type="radio" name="f' + i + '" value="f"> falsch</label></p>';
+    }).join('') +
+    '<p>Widerlegung/Korrektur: <input id="f3" data-idx="3" style="max-width:340px"></p>',
+    function (v) {
+      const teile = rfm.map(function (it, i) {
+        return { check: function (s) { return s === it.richtig ? 1 : 0; }, p: 0.5 };
+      });
+      teile.push({ check: function (s) { return String(s || '').trim().length >= 5 ? 1 : 0; }, p: 1.5 });
+      return multiCheck(v, teile);
+    }, { typ: 'multi', teile: 4,
+      loesungHtml: '1) <b>wahr</b> &nbsp; 2) <b>falsch</b>, z. B. √16 = 4 (gerade) &nbsp; 3) <b>falsch</b>, z. B. (−2)² = +4 (positiv).' }));
+  A.push(aufgabe('Aufgabe 5: Radius aus dem Umfang', 6,
+    'Berechne den Radius r des Kreises mit dem Umfang <b>u = 31,4 cm</b>. Runde dein Ergebnis auf zwei Nachkommastellen genau. (Angabe in cm) (6 P)',
+    function (v) { const n = parseZahl(v.f0); return !isNaN(n) && Math.abs(n - 5) < 0.011 ? 1 : 0; },
+    { typ: 'zahl', weg: true, loesungHtml: 'r = u : (2 · π) = 31,4 cm : 6,28 ≈ <b>5,00 cm</b>' }));
+  A.push(aufgabe('Aufgabe 6: Rundes Blumenbeet', 4,
+    'In einem Park wird ein rundes Blumenbeet mit einem Durchmesser von <b>d = 7,5 m</b> angelegt. Zeige rechnerisch, dass der Flächeninhalt des Blumenbeets <b>44,18 m²</b> beträgt. (Angabe in m²) (4 P)',
+    function (v) { const n = parseZahl(v.f0); return !isNaN(n) && Math.abs(n - 44.18) < 0.011 ? 1 : 0; },
+    { typ: 'zahl', weg: true, loesungHtml: 'A = π · r² = π · 3,75² ≈ 3,1416 · 14,0625 ≈ <b>44,18 m²</b>' }));
+  A.push(aufgabe('Aufgabe 7: Radius aus der Fläche', 6,
+    'Berechne den Radius r des Kreises mit dem Flächeninhalt <b>A = 50 cm²</b>. Runde dein Ergebnis auf zwei Nachkommastellen genau. (Angabe in cm)<br><span class="klein">Tipp: r = √(A : π)</span> (6 P)',
+    function (v) { const n = parseZahl(v.f0); return !isNaN(n) && Math.abs(n - 3.99) < 0.011 ? 1 : 0; },
+    { typ: 'zahl', weg: true, loesungHtml: 'r = √(50 : π) ≈ √15,92 ≈ <b>3,99 cm</b>' }));
+  A.push(aufgabe('Aufgabe 8: Sekundenzeiger', 6,
+    'Der Sekundenzeiger einer Turmuhr ist <b>1,2 m</b> lang. Berechne, welche Strecke die Spitze des Zeigers in einer Minute zurücklegt. (Angabe in m)<br><span class="klein">Tipp: Bei der zurückgelegten Strecke der Zeigerspitze handelt es sich um den Umfang u.</span> (6 P)',
+    function (v) { const n = parseZahl(v.f0); return !isNaN(n) && Math.abs(n - 7.54) < 0.011 ? 1 : 0; },
+    { typ: 'zahl', weg: true, loesungHtml: 'u = 2 · π · r = 2 · π · 1,2 m ≈ <b>7,54 m</b>' }));
+  A.push(aufgabe('Aufgabe 9: Pizza', 8,
+    '<p>Ein Familienbetrieb backt eine runde Pizza mit dem Durchmesser <b>25 cm</b>. Die Pizza wird mit Oliven belegt. Ein <b>2 cm</b> breiter Rand bleibt dabei unbelegt (der klassische Pizzarand). Runde jeweils auf zwei Nachkommastellen. (je 2 P)</p>' +
+    '<p>a) Berechne die Gesamtfläche der Pizza: <input id="f0" data-idx="0" style="width:100px"> cm²</p>' +
+    '<p>b) Berechne die mit Oliven belegte Fläche: <input id="f1" data-idx="1" style="width:100px"> cm²</p>' +
+    '<p>c) Ermittle aus a) und b) die unbelegte Fläche der Pizza (Rand): <input id="f2" data-idx="2" style="width:100px"> cm²</p>' +
+    '<p>d) Gib als Prozent den Anteil der unbelegten Pizza an: <input id="f3" data-idx="3" style="width:100px"> %</p>',
+    function (v) {
+      return multiCheck(v, [
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(n - 490.87) < 0.011 ? 1 : 0; }, p: 2 },
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(n - 346.36) < 0.011 ? 1 : 0; }, p: 2 },
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(n - 144.51) < 0.02 ? 1 : 0; }, p: 2 },
+        { check: function (s) { const n = parseZahl(s); return !isNaN(n) && Math.abs(n - 29.4) < 0.11 ? 1 : 0; }, p: 2 }
+      ]);
+    }, { typ: 'multi', teile: 4,
+      loesungHtml: 'a) A = π · 12,5² ≈ <b>490,87 cm²</b> &nbsp; b) r = 10,5 cm: π · 10,5² ≈ <b>346,36 cm²</b> &nbsp; c) 490,87 − 346,36 = <b>144,51 cm²</b> &nbsp; d) 144,51 : 490,87 ≈ <b>29,4 %</b>' }));
+  return A;
+}
+
+/* ===== Darstellung der Aufgaben ===== */
+function renderAufgabe(a, idx) {
+  const pre = 'q' + idx + '_';
+  if (a.typ === 'abschnitt') {
+    const d = document.createElement('div');
+    d.className = 'abschnitt';
+    d.innerHTML = '<h3>' + a.titel + '</h3>';
+    return d;
+  }
+  const d = document.createElement('div');
+  d.className = 'aufgabe glass';
+  d.setAttribute('data-ai', idx);
+  const html = a.html
+    .replace(/id="f/g, 'id="' + pre + 'f')
+    .replace(/name="f/g, 'name="' + pre + 'f')
+    .replace(/for="f/g, 'for="' + pre + 'f');
+  let eingabe = '';
+  if (a.typ === 'zahl') eingabe = '<input id="' + pre + 'f0" inputmode="decimal" autocomplete="off" placeholder="Antwort">';
+  else if (a.typ === 'text') eingabe = '<input id="' + pre + 'f0" autocomplete="off" placeholder="Antwort">';
+  else if (a.typ === 'frei') eingabe = '<textarea id="' + pre + 'f0" rows="3" placeholder="Deine Antwort …"></textarea>';
+  else if (a.typ === 'bruch') eingabe = '<div class="bruchEingabe"><input id="' + pre + 'f0z" inputmode="numeric" placeholder="Zähler"><span class="bruchStrich"></span><input id="' + pre + 'f0n" inputmode="numeric" placeholder="Nenner"></div>';
+  if (a.weg) eingabe += '<textarea id="' + pre + 'weg" rows="2" placeholder="Rechenweg (Pflicht) …"></textarea>';
+  let uebersetzung = '';
+  if (state.sprache && a.uebersetzungen && a.uebersetzungen[state.sprache]) {
+    const praefix = state.sprache === 'en' ? 'English: ' : 'Español: ';
+    uebersetzung = '<div class="uebersetzung">' + praefix + a.uebersetzungen[state.sprache] + '</div>';
+  }
+  d.innerHTML = '<div class="aufgKopf"><span class="aufgTitel">' + a.titel + '</span><span class="pkte">' + formatPunkte(a.punkte) + ' P</span></div>'
+    + '<div class="aufgText">' + html + '</div>' + uebersetzung + '<div class="eingabeZone">' + eingabe + '</div>';
+  return d;
+}
+function sammleWerte(karte, idx) {
+  const pre = 'q' + idx + '_';
+  const v = {};
+  karte.querySelectorAll('input[type=radio]:checked').forEach(function (el) {
+    v[el.name.slice(pre.length)] = el.value;
+  });
+  const cb = {};
+  karte.querySelectorAll('input[type=checkbox]:checked').forEach(function (el) {
+    const k = el.name.slice(pre.length);
+    if (!cb[k]) cb[k] = [];
+    cb[k].push(el.value);
+  });
+  Object.keys(cb).forEach(function (k) { v[k] = cb[k]; });
+  karte.querySelectorAll('input:not([type=radio]):not([type=checkbox]), textarea, select').forEach(function (el) {
+    if (el.id && el.id.indexOf(pre) === 0) v[el.id.slice(pre.length)] = el.value;
+  });
+  return v;
+}
+function antwortText(v) {
+  const keys = Object.keys(v).filter(function (k) { return k !== 'weg'; }).sort();
+  return keys.map(function (k) { return Array.isArray(v[k]) ? v[k].join(', ') : v[k]; })
+    .filter(function (s) { return String(s).trim() !== ''; }).join(' | ');
+}
+
+/* ===== Bewertung ===== */
+function farbeFuer(proz) {
+  if (proz >= 90) return 'farbe-dunkelgruen';
+  if (proz >= 65) return 'farbe-gruen';
+  if (proz >= 45) return 'farbe-orange';
+  if (proz >= 15) return 'farbe-gelb';
+  return 'farbe-rot';
+}
+const NOTEN = { GK: [85, 77, 67, 40, 20], EK: [90, 80, 72, 45, 25], V: [87, 78, 70, 42, 22] };
+function noteAusProzent(p, kurs) {
+  const g = NOTEN[kurs] || NOTEN.V;
+  if (p >= g[0]) return '1';
+  if (p < g[4]) return '6';
+  for (let i = 1; i <= 4; i++) {
+    if (p >= g[i]) {
+      const note = i + 1;
+      const w = g[i - 1] - g[i];
+      let tendenz = '';
+      if (p >= g[i] + 2 * w / 3) tendenz = '+';
+      else if (p < g[i] + w / 3) tendenz = '−';
+      return String(note) + tendenz;
+    }
+  }
+  return '6';
+}
+function istVermerk(lzkName) {
+  return /^(übung|testvorbereitung)/i.test(lzkName.trim());
+}
+function vermerkText(proz, details) {
+  let satz;
+  if (proz >= 85) satz = 'Sehr gut gemacht — das Thema hast du sicher verstanden!';
+  else if (proz >= 60) satz = 'Das hast du schon gut gemacht. Übe noch die Aufgaben, bei denen du Fehler hattest.';
+  else if (proz >= 40) satz = 'Einiges hast du schon geschafft, aber da musst du noch üben. Schau dir dazu die Musterlösung an.';
+  else satz = 'Da musst du noch üben. Bearbeite die Aufgaben mithilfe der Musterlösung noch einmal.';
+  const fehler = details.filter(function (d) { return d.proz < 100; }).map(function (d) { return d.titel; });
+  let txt = 'Leistungsvermerk: <b>' + satz + '</b>';
+  if (fehler.length) txt += '<br>Das musst du noch üben: ' + fehler.join('; ');
+  return txt;
+}
+function rueckmeldungText(proz, erzielt, max) {
+  let satz;
+  if (proz >= 85) satz = 'Hervorragende Leistung – weiter so!';
+  else if (proz >= 60) satz = 'Gute Arbeit – mit etwas Übung wird es noch besser.';
+  else if (proz >= 40) satz = 'Du hast die Grundlagen teilweise verstanden. Übe die markierten Aufgaben weiter.';
+  else satz = 'Lass dich nicht entmutigen – schau dir die Lösungen an und sprich gern mit mir.';
+  return 'Individuelle Rückmeldung: Du hast <b>' + formatPunkte(erzielt) + ' von ' + formatPunkte(max) + ' Punkten</b> erreicht (' + formatPunkte(proz) + ' %). ' + satz;
+}
+function bewerten() {
+  const details = [];
+  let erzielt = 0, max = 0, nr = 0;
+  state.aufgaben.forEach(function (a, idx) {
+    if (a.typ === 'abschnitt') return;
+    nr++;
+    const karte = document.querySelector('[data-ai="' + idx + '"]');
+    const v = karte ? sammleWerte(karte, idx) : {};
+    LETZTE_LOESUNGEN = [];
+    const res = a.check(v);
+    const aufgezeichnet = LETZTE_LOESUNGEN.slice();
+    let p = 0, feedback = '';
+    if (typeof res === 'number') {
+      let anteil = res;
+      if (a.weg && res === 1 && !String(v.weg || '').trim()) {
+        anteil = 0.5;
+        feedback = 'Endergebnis richtig, aber Rechenweg fehlt bzw. ist nicht ausreichend dargestellt (50 % der Punkte).';
+      }
+      p = Math.round(anteil * a.punkte * 100) / 100;
+      if (!feedback) feedback = (res === 1) ? 'Vollständig richtig.' : 'Antwort falsch oder keine Eingabe.';
+    } else if (res && typeof res === 'object') {
+      Object.keys(res).forEach(function (k) { p += res[k][0]; });
+      p = Math.round(p * 100) / 100;
+      const ratio = a.punkte ? p / a.punkte : 0;
+      if (Math.abs(ratio - 0.85) < 0.001) feedback = 'Wert richtig, nicht vollständig gekürzt (85 % der Punkte).';
+      else if (p >= a.punkte) feedback = 'Vollständig richtig.';
+      else if (p > 0) feedback = 'Teilweise richtig.';
+      else feedback = 'Antwort falsch oder keine Eingabe.';
+    }
+    erzielt += p; max += a.punkte;
+    const proz = a.punkte ? (p / a.punkte) * 100 : 0;
+    const farbe = farbeFuer(proz);
+    const musterHtml = a.loesungHtml
+      || (aufgezeichnet.length ? 'Richtige Lösung: <b>' + aufgezeichnet.join(' &nbsp;|&nbsp; ') + '</b>' : '');
+    details.push({
+      nr: nr,
+      titel: a.titel,
+      frage: stripHtml(a.html).replace(/\s+/g, ' ').trim(),
+      typ: a.typ,
+      schuelerAntwort: antwortText(v),
+      antwort: antwortText(v),
+      feedback: feedback,
+      musterloesung: stripHtml(musterHtml).replace(/\s+/g, ' ').trim(),
+      musterloesungHtml: musterHtml,
+      punkte: p,
+      maxPunkte: a.punkte,
+      max: a.punkte,
+      proz: proz,
+      farbe: farbe,
+      fundamentum: /^Fundamentum/.test(a.titel)
+    });
+  });
+  const proz = max ? (erzielt / max) * 100 : 0;
+  const erg = { erzielt: erzielt, max: max, proz: proz, details: details,
+    gesamtPunkte: erzielt, maxPunkte: max };
+  if (state.leModus) {
+    erg.bewertungHtml = rueckmeldungText(proz, erzielt, max);
+    erg.note = stripHtml(erg.bewertungHtml);
+    erg.noteKurz = '';
+  } else if (istVermerk(state.lzkName)) {
+    erg.bewertungHtml = vermerkText(proz, details);
+    erg.note = stripHtml(erg.bewertungHtml);
+    erg.noteKurz = '';
+  } else {
+    const n = noteAusProzent(proz, state.kurs);
+    erg.note = n;
+    erg.noteKurz = n;
+    erg.bewertungHtml = 'Note: <b>' + n + '</b>';
+  }
+  return erg;
+}
+
+/* ===== Anmeldeablauf mit Sperrlogik ===== */
+function $(id) { return document.getElementById(id); }
+let letzterGepruefterWert = '';
+function sperrRestMs() {
+  const bis = parseInt(localStorage.getItem('ltw_pw_lockuntil') || '0', 10);
+  return Math.max(0, bis - Date.now());
+}
+function zeigeSperre() {
+  const rest = sperrRestMs();
+  const h = $('pwHinweis');
+  if (rest > 0) {
+    h.style.display = 'block';
+    h.textContent = 'Zu viele Fehlversuche. Nächster Versuch in ' + Math.ceil(rest / 1000) + ' s möglich.';
+    $('pwFeld').disabled = true;
+    setTimeout(zeigeSperre, 500);
+  } else if (!state.angemeldet) {
+    $('pwFeld').disabled = false;
+    h.style.display = 'none';
+  }
+}
+function pruefePasswort() {
+  const wert = $('pwFeld').value.trim().toUpperCase();
+  if (!wert || wert === letzterGepruefterWert || state.angemeldet) return;
+  letzterGepruefterWert = wert;
+  if (sperrRestMs() > 0) { zeigeSperre(); return; }
+  const s = SCHUELER[wert];
+  if (s) {
+    state.angemeldet = true;
+    state.name = s.name;
+    state.eintraege = s.eintraege;
+    const f = FOERDERUNG[s.name];
+    if (f) {
+      state.extraMin = f.extraMin || 0;
+      if (f.sprache) state.sprache = f.sprache;
+      if (f.le) state.leModus = true;
+    }
+    localStorage.setItem('ltw_pw_fails', '0');
+    localStorage.removeItem('ltw_pw_lockuntil');
+    $('pwFeld').value = s.name; // SVERWEIS: Name ersetzt das Passwort
+    $('pwFeld').disabled = true;
+    $('pwHinweis').style.display = 'none';
+    showToast('Angemeldet: ' + s.name);
+    eintraegeVerarbeiten();
+  } else {
+    const fails = parseInt(localStorage.getItem('ltw_pw_fails') || '0', 10) + 1;
+    localStorage.setItem('ltw_pw_fails', String(fails));
+    const h = $('pwHinweis');
+    h.style.display = 'block';
+    if (fails >= 3) {
+      const dauer = 15000 * Math.pow(2, fails - 3);
+      localStorage.setItem('ltw_pw_lockuntil', String(Date.now() + dauer));
+      h.textContent = 'Passwort falsch. Sperre für ' + Math.round(dauer / 1000) + ' s.';
+      zeigeSperre();
+    } else {
+      h.textContent = 'Passwort falsch. Noch ' + (3 - fails) + ' freie(r) Versuch(e), dann greift eine Sperre.';
+    }
+  }
+}
+function eintraegeVerarbeiten() {
+  const faecher = [];
+  state.eintraege.forEach(function (e) { if (faecher.indexOf(e.fach) === -1) faecher.push(e.fach); });
+  const sel = $('fachFeld');
+  sel.innerHTML = '';
+  if (faecher.length === 1) {
+    const o = document.createElement('option');
+    o.value = faecher[0]; o.textContent = faecher[0];
+    sel.appendChild(o);
+    sel.disabled = true;
+    fachGewaehlt(faecher[0]);
+  } else {
+    sel.innerHTML = '<option value="">– bitte wählen –</option>';
+    faecher.forEach(function (f) {
+      const o = document.createElement('option');
+      o.value = f; o.textContent = f;
+      sel.appendChild(o);
+    });
+    sel.disabled = false;
+  }
+}
+function fachGewaehlt(fach) {
+  state.fach = fach;
+  const passend = state.eintraege.filter(function (e) { return e.fach === fach; });
+  state.klasse = passend[0].klasse;
+  state.kurs = passend[0].kurs;
+  $('klasseFeld').value = state.klasse;
+  $('kursFeld').value = state.kurs === 'V' ? 'V (Klassenkurs)' : state.kurs;
+  $('kursFeld').className = 'kurs-' + state.kurs; // EK rot / GK grün / V blau
+  fuelleLzks();
+}
+function fuelleLzks() {
+  const sel = $('lzkFeld');
+  sel.innerHTML = '<option value="">– bitte wählen –</option>';
+  const passend = LZKS.filter(function (l) {
+    const klassePasst = Array.isArray(l.klasse) ? l.klasse.indexOf(state.klasse) !== -1 : l.klasse === state.klasse;
+    return l.fach === state.fach && klassePasst && l.kurse.indexOf(state.kurs) !== -1;
+  });
+  passend.forEach(function (l) {
+    const o = document.createElement('option');
+    o.value = l.id;
+    if (lzkVerfuegbar(l)) {
+      o.textContent = l.name;
+    } else {
+      o.textContent = '🔒 ' + l.name + ' (' + lzkStatusText(l) + ')';
+      o.disabled = true;
+    }
+    sel.appendChild(o);
+  });
+  if (!passend.length) {
+    sel.innerHTML = '<option value="">– derzeit keine LZK für dieses Fach freigegeben –</option>';
+  }
+  sel.disabled = false;
+  pruefeStart();
+}
+function aktuelleLzk() {
+  return LZKS.find(function (l) { return l.id === $('lzkFeld').value; }) || null;
+}
+function pruefeStart() {
+  const l = aktuelleLzk();
+  $('startBtn').disabled = !(state.angemeldet && state.fach && l && lzkVerfuegbar(l));
+}
+
+/* ===== Teststart und Countdown ===== */
+function minutenProAufgabe(fach) {
+  return { 'Mathematik': 5, 'Physik': 2, 'Naturwissenschaften': 4, 'Informatik': 2 }[fach] || 3;
+}
+function starteTest() {
+  const lzk = aktuelleLzk();
+  if (!lzk || !lzkVerfuegbar(lzk)) { showToast('Diese LZK ist derzeit nicht verfügbar.'); return; }
+  state.lzk = lzk;
+  state.lzkName = lzk.name;
+  try {
+    if (lzk.vorlage === 'codes') state.aufgaben = genCodesVorlage();
+    else if (lzk.vorlage === 'potenzen') state.aufgaben = genPotenzenVorlage();
+    else {
+      const gens = {
+        daten5: genDaten5, grund5: genGrund5, kreis6: genKreis6,
+        brueche7: function () { return genBrueche7(state.kurs); },
+        physikSicherheit: genPhysikSicherheit
+      };
+      state.aufgaben = gens[lzk.gen]();
+    }
+    if (!state.aufgaben || !state.aufgaben.length) throw new Error('leer');
+  } catch (e) {
+    state.testLaeuft = false;
+    $('testBereich').style.display = 'none';
+    $('anmeldeKarte').style.display = '';
+    showToast('Fehler beim Erstellen des Tests. Bitte Seite neu laden.');
+    return;
+  }
+  state.testLaeuft = true;
+  $('anmeldeKarte').style.display = 'none';
+  $('testBereich').style.display = 'block';
+  $('testBereich').classList.add('schutz');
+  $('testTitel').textContent = lzk.name;
+  const gesamt = state.aufgaben.reduce(function (s, a) { return s + a.punkte; }, 0);
+  $('testInfo').textContent = state.name + ' · ' + state.fach + ' · Klasse ' + state.klasse
+    + (state.kurs !== 'V' ? ' (' + state.kurs + ')' : '') + ' · ' + formatPunkte(gesamt) + ' Punkte';
+  const liste = $('aufgabenListe');
+  liste.innerHTML = '';
+  state.aufgaben.forEach(function (a, i) { liste.appendChild(renderAufgabe(a, i)); });
+  const nAufg = state.aufgaben.filter(function (a) { return a.typ !== 'abschnitt'; }).length;
+  let minuten = nAufg * minutenProAufgabe(state.fach);
+  if (state.extraMin) {
+    $('foerderZeit').textContent = '(+ ' + state.extraMin + ' Min Förderbedarf)';
+    minuten += state.extraMin;
+  } else {
+    $('foerderZeit').textContent = '';
+  }
+  state.restSekunden = minuten * 60;
+  starteCountdown();
+  window.scrollTo(0, 0);
+}
+function countdownAnzeige() {
+  const m = Math.floor(state.restSekunden / 60), s = state.restSekunden % 60;
+  $('countdownZeit').textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  const leiste = $('countdownLeiste');
+  leiste.classList.remove('warn-gelb', 'warn-orange', 'warn-rot');
+  if (state.restSekunden <= 90) leiste.classList.add('warn-rot');
+  else if (state.restSekunden <= 140) leiste.classList.add('warn-orange');
+  else if (state.restSekunden <= 200) leiste.classList.add('warn-gelb');
+}
+function starteCountdown() {
+  const leiste = $('countdownLeiste');
+  leiste.classList.add('laeuft');
+  countdownAnzeige();
+  clearInterval(state.timerId);
+  state.timerId = setInterval(function () {
+    state.restSekunden--;
+    countdownAnzeige();
+    if (state.restSekunden <= 0) {
+      clearInterval(state.timerId);
+      abgeben(true);
+    }
+  }, 1000);
+}
+function anzahlUnbearbeitet() {
+  let n = 0;
+  state.aufgaben.forEach(function (a, idx) {
+    if (a.typ === 'abschnitt') return;
+    const karte = document.querySelector('[data-ai="' + idx + '"]');
+    if (!karte) return;
+    if (!antwortText(sammleWerte(karte, idx))) n++;
+  });
+  return n;
+}
+
+/* ===== Abgabe ===== */
+function abgeben(automatisch) {
+  if (!state.testLaeuft) return;
+  if (automatisch) { abgabeAbschliessen(); return; }
+  const offen = anzahlUnbearbeitet();
+  $('abgabeText').textContent = offen > 0
+    ? 'Es sind noch ' + offen + ' Aufgabe(n) unbearbeitet. Unbearbeitete Aufgaben werden mit 0 Punkten gewertet. Wirklich abgeben?'
+    : 'Alle Aufgaben sind bearbeitet. Jetzt endgültig abgeben?';
+  $('abgabeModal').classList.add('aktiv');
+}
+function abgabeAbschliessen() {
+  $('abgabeModal').classList.remove('aktiv');
+  if (!state.testLaeuft) return;
+  state.testLaeuft = false;
+  clearInterval(state.timerId);
+  const ergebnis = bewerten();
+  $('testBereich').classList.remove('schutz');
+  $('testBereich').style.display = 'none';
+  $('countdownLeiste').classList.remove('laeuft');
+  sessionStorage.setItem('ltw_gesperrt', '1');
+  zeigeErgebnis(ergebnis);
+  sendeAnGoogleSheets(ergebnis);
+}
+
+/* ===== Ergebnisansicht ===== */
+function zeigeErgebnis(erg) {
+  const bereich = $('ergebnisBereich');
+  bereich.style.display = 'block';
+  let h = '<div class="karte glass ergKarte">'
+    + '<div class="ergKopf"><div>'
+    + '<div class="ergZeile"><b>' + state.name + '</b> / ' + state.fach + ' / ' + state.klasse + ' (' + state.kurs + ')</div>'
+    + '<div class="ergZeile">' + state.lzkName + '</div>'
+    + '<div class="ergZeile">Punkte: <b>' + formatPunkte(erg.erzielt) + ' von ' + formatPunkte(erg.max) + '</b> / ' + formatPunkte(erg.proz) + ' %' + (erg.noteKurz ? ' / <b>Note: ' + erg.noteKurz + '</b>' : '') + '</div>'
+    + '<div class="ergBewertung">' + erg.bewertungHtml + '</div>'
+    + '</div><div class="logo" id="logoErg"></div></div>'
+    + '<div class="aktionsZeile"><button class="btn" id="pdfBtn">Ergebnis als PDF speichern</button></div>'
+    + '</div>';
+  h += '<div class="abschnitt"><h3>Auswertung im Detail</h3></div>';
+  erg.details.forEach(function (d) {
+    h += '<div class="detailKarte glass ' + d.farbe + '">'
+      + '<div class="detailKopf"><span>' + d.titel + '</span><span>' + formatPunkte(d.punkte) + ' / ' + formatPunkte(d.max) + ' P</span></div>'
+      + '<div class="detailAntwort">Deine Antwort: ' + (d.antwort ? String(d.antwort) : '<i>keine Angabe</i>') + '</div>'
+      + '<div class="detailAntwort"><i>' + d.feedback + '</i></div>';
+    if (d.musterloesungHtml) {
+      h += '<div class="musterBox">Musterlösung: ' + d.musterloesungHtml + '</div>';
+    } else if (d.fundamentum) {
+      h += '<div class="musterBox">Musterlösung: Wird in der Besprechung gezeigt.</div>';
+    }
+    h += '</div>';
+  });
+  bereich.innerHTML = h;
+  $('logoErg').innerHTML = LOGO_SVG;
+  $('pdfBtn').addEventListener('click', function () { erstellePDF(erg); });
+  window.scrollTo(0, 0);
+}
+
+/* ===== Übermittlung an Google Sheets (Version laut Anweisung) ===== */
+function sendeAnGoogleSheets(ergebnis) {
+  const url = 'https://script.google.com/macros/s/AKfycbwoTwjjQTMyyzx6dO-yACDC4StbTpYyR8wcRyFlLiUXvUvcrqPDdQBlubIC2bst6XpWYQ/exec';
+  if (!state.kurs) {
+    console.warn('Kein Kurs ermittelt – Anmeldung unvollständig.');
+  }
+  const detailsArray = ergebnis.details.map(d => ({
+    nr: d.nr,
+    frage: d.frage,
+    typ: d.typ,
+    antwort: d.schuelerAntwort,
+    feedback: d.feedback,
+    musterloesung: d.musterloesung,
+    punkte: d.punkte,
+    maxPunkte: d.maxPunkte,
+    farbe: d.farbe
+  }));
+  // URLSearchParams sendet automatisch als application/x-www-form-urlencoded
+  // -> Werte sind im Google-Script über e.parameter auslesbar
+  const params = new URLSearchParams();
+  params.append('zeitstempel', new Date().toISOString());
+  params.append('name', state.name);
+  params.append('fach', state.fach);
+  params.append('klasse', state.klasse);
+  params.append('kurs', state.kurs);
+  params.append('lzk', state.lzkName);
+  params.append('punkte', formatPunkte(ergebnis.gesamtPunkte) + ' / ' + ergebnis.maxPunkte);
+  params.append('note', String(ergebnis.note));
+  params.append('details', JSON.stringify(detailsArray));
+  params.append('pdfname', (state.name + '_' + state.lzkName + '.pdf').replace(/\s+/g, '_'));
+  console.log('=== Sende an Google ===');
+  fetch(url, { method: 'POST', body: params })
+    .then(response => response.text())
+    .then(data => { console.log('Antwort:', data); })
+    .catch(err => {
+      console.error('Fehler:', err);
+      showToast('Ergebnis konnte nicht gespeichert werden.');
+    });
+}
+
+/* ===== Kopierschutz während der schriftlichen Arbeit ===== */
+function kopierWarnung() {
+  showToast('Während der schriftlichen Arbeit ist das Kopieren der Aufgaben nicht erlaubt!', true);
+}
+['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function (ev) {
+  document.addEventListener(ev, function (e) {
+    if (!state.testLaeuft) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return; // Eingabefelder bleiben frei
+    e.preventDefault();
+    kopierWarnung();
+  });
+});
+document.addEventListener('keydown', function (e) {
+  if (!state.testLaeuft) return;
+  const k = (e.key || '').toLowerCase();
+  if (!(e.ctrlKey || e.metaKey)) return;
+  if (k !== 'c' && k !== 'x' && k !== 'p' && k !== 's') return;
+  const t = e.target;
+  const imFeld = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT');
+  if (imFeld && (k === 'c' || k === 'x')) return; // Markieren/Kopieren im eigenen Eingabefeld erlaubt
+  e.preventDefault();
+  kopierWarnung();
+});
+
+/* ===== PDF-Auswertung (jsPDF) ===== */
+function pdfText(s) {
+  return String(s == null ? '' : s)
+    .replace(/\u2212/g, '-').replace(/\u00b7/g, '*').replace(/\u2219/g, '*')
+    .replace(/\u221a/g, 'Wurzel ').replace(/\u221b/g, '3. Wurzel ')
+    .replace(/\u2248/g, 'ca. ').replace(/\u00b2/g, '^2').replace(/\u00b3/g, '^3')
+    .replace(/\u03c0/g, 'pi').replace(/\u2013/g, '-').replace(/\u2014/g, '-')
+    .replace(/\u201e|\u201c|\u201d/g, '"').replace(/\u2018|\u2019/g, "'")
+    .replace(/[^\u0020-\u007e\u00c4\u00d6\u00dc\u00e4\u00f6\u00fc\u00df\u20ac\u00b0]/g, ' ');
+}
+function logoPng(breitePx, cb) {
+  try {
+    const img = new Image();
+    img.onload = function () {
+      const c = document.createElement('canvas');
+      c.width = breitePx; c.height = breitePx;
+      c.getContext('2d').drawImage(img, 0, 0, breitePx, breitePx);
+      cb(c.toDataURL('image/png'));
+    };
+    img.onerror = function () { cb(null); };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(LOGO_SVG)));
+  } catch (e) { cb(null); }
+}
+function erstellePDF(erg) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    showToast('PDF-Bibliothek nicht geladen. Bitte Internetverbindung prüfen.');
+    return;
+  }
+  logoPng(400, function (logo) {
+    const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+    const seitenBreite = 210, rand = 15, maxBreite = seitenBreite - 2 * rand;
+    let y = 0;
+    function logoRechts(mm) { if (logo) doc.addImage(logo, 'PNG', seitenBreite - rand - mm, 10, mm, mm); }
+    function zeile(txt, groesse, fett, abstand) {
+      doc.setFontSize(groesse);
+      doc.setFont('helvetica', fett ? 'bold' : 'normal');
+      const zeilen = doc.splitTextToSize(pdfText(txt), maxBreite);
+      if (y + zeilen.length * groesse * 0.45 > 282) { doc.addPage(); y = 20; logoRechts(25); }
+      doc.text(zeilen, rand, y);
+      y += zeilen.length * groesse * 0.45 + (abstand || 2);
+    }
+    /* Deckblatt: Logo größer (oben rechts) */
+    logoRechts(45);
+    y = 30;
+    zeile('LernSpeicher – Auswertung', 18, true, 6);
+    zeile(state.name + ' / ' + state.fach + ' / ' + state.klasse + ' (' + state.kurs + ')', 12, false, 2);
+    zeile(state.lzkName, 12, false, 2);
+    zeile('Punkte: ' + formatPunkte(erg.erzielt) + ' von ' + formatPunkte(erg.max) + ' / ' + formatPunkte(erg.proz) + ' %' + (erg.noteKurz ? ' / Note: ' + erg.noteKurz : ''), 12, true, 6);
+    zeile(stripHtml(erg.bewertungHtml), 11, false, 8);
+    zeile('Datum: ' + new Date().toLocaleString('de-DE'), 10, false, 0);
+    /* Detailseiten: Logo 25 mm oben rechts auf jeder Seite */
+    doc.addPage(); y = 20; logoRechts(25);
+    zeile('Auswertung im Detail', 14, true, 6);
+    erg.details.forEach(function (d) {
+      zeile(d.titel + '  –  ' + formatPunkte(d.punkte) + ' / ' + formatPunkte(d.maxPunkte) + ' P', 11, true, 1);
+      zeile('Deine Antwort: ' + (d.schuelerAntwort || 'keine Angabe'), 10, false, 1);
+      zeile(d.feedback, 9, false, 1);
+      if (d.musterloesung) zeile('Musterlösung: ' + d.musterloesung, 9, false, 4);
+      else zeile('', 4, false, 3);
+    });
+    doc.save((state.name + '_' + state.lzkName + '.pdf').replace(/\s+/g, '_'));
+  });
+}
+
+/* ===== Ereignisse und Initialisierung ===== */
+window.addEventListener('beforeunload', function (e) {
+  if (state.testLaeuft) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+document.addEventListener('DOMContentLoaded', function () {
+  $('logoKopf').innerHTML = LOGO_SVG;
+  if (sessionStorage.getItem('ltw_gesperrt') === '1') {
+    $('anmeldeKarte').style.display = 'none';
+    $('sperrKarte').style.display = 'block';
+    return;
+  }
+  zeigeSperre();
+  $('pwFeld').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); pruefePasswort(); } });
+  $('pwFeld').addEventListener('blur', pruefePasswort);
+  $('pwFeld').addEventListener('input', function () { letzterGepruefterWert = ''; });
+  $('fachFeld').addEventListener('change', function () { if (this.value) fachGewaehlt(this.value); });
+  $('lzkFeld').addEventListener('change', pruefeStart);
+  $('startBtn').addEventListener('click', starteTest);
+  $('startBtn').parentElement.addEventListener('click', function () {
+    if ($('startBtn').disabled) showToast('Bitte zuerst Passwort eingeben, Fach und freigegebene LZK wählen.');
+  });
+  $('abgebenBtn').addEventListener('click', function () { abgeben(false); });
+  $('trotzdemBtn').addEventListener('click', abgabeAbschliessen);
+  $('zurueckBtn').addEventListener('click', function () { $('abgabeModal').classList.remove('aktiv'); });
+});
+</script>
+</body>
+</html>
